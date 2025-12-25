@@ -12,11 +12,11 @@ namespace BudgetControl.Domain.Entities
         public DateTime CreatedAt { get; }
         public Guid CreatedBy { get; }
 
-        public PartialExpense(
+        private PartialExpense(
             Money amount,
             SpendingCategory category,
             Guid createdBy,
-            string description = "",
+            string description,
             Guid? id = null)
             : base(id)
         {
@@ -25,6 +25,15 @@ namespace BudgetControl.Domain.Entities
             CreatedBy = createdBy;
             Description = description;
             CreatedAt = DateTime.UtcNow;
+        }
+
+        public static PartialExpense Create(
+            Money amount,
+            SpendingCategory category,
+            Guid createdBy,
+            string description = "")
+        {
+            return new PartialExpense(amount, category, createdBy, description);
         }
     }
 }

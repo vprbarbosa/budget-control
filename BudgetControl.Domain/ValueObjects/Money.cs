@@ -16,8 +16,7 @@ namespace BudgetControl.Domain.ValueObjects
 
         public static Money Zero => new(0);
 
-        public Money Add(Money other)
-            => new(Amount + other.Amount);
+        public Money Add(Money other) => new(Amount + other.Amount);
 
         public Money Subtract(Money other)
         {

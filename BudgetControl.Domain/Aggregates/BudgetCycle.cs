@@ -1,4 +1,5 @@
-﻿using BudgetControl.Domain.Common;
+﻿using BudgetControl.Domain.Categories;
+using BudgetControl.Domain.Common;
 using BudgetControl.Domain.Entities;
 using BudgetControl.Domain.ValueObjects;
 
@@ -13,7 +14,7 @@ namespace BudgetControl.Domain.Aggregates
         private readonly List<DayAllocation> _days = new();
         public IReadOnlyCollection<DayAllocation> Days => _days;
 
-        public BudgetCycle(
+        private BudgetCycle(
             FundingSource source,
             CyclePeriod period,
             Money totalCapacity,
@@ -27,6 +28,14 @@ namespace BudgetControl.Domain.Aggregates
             InitializeDays();
         }
 
+        public static BudgetCycle Create(
+            FundingSource source,
+            CyclePeriod period,
+            Money totalCapacity)
+        {
+            return new BudgetCycle(source, period, totalCapacity);
+        }
+
         private void InitializeDays()
         {
             _days.Clear();
@@ -37,6 +46,8 @@ namespace BudgetControl.Domain.Aggregates
                     Period.StartDate.AddDays(i)));
             }
         }
+
+        // ===== Queries =====
 
         public Money TotalSpent =>
             _days.Aggregate(Money.Zero, (acc, d) => acc.Add(d.TotalSpent));
@@ -51,6 +62,32 @@ namespace BudgetControl.Domain.Aggregates
             RemainingDays == 0
                 ? Money.Zero
                 : new Money(RemainingCapacity.Amount / RemainingDays);
+
+        // ===== Commands (intention revealing) =====
+
+        public void RegisterExpense(
+            DateOnly date,
+            Money amount,
+            SpendingCategory category,
+            Guid userId,
+            string description = "")
+        {
+            var day = _days.Single(d => d.Date == date);
+
+            var expense = PartialExpense.Create(
+                amount,
+                category,
+                userId,
+                description);
+
+            day.AddExpense(expense);
+        }
+
+        public void CloseDay(DateOnly date)
+        {
+            var day = _days.Single(d => d.Date == date);
+            day.Close();
+        }
 
         public void AdjustTotalCapacity(Money newCapacity)
         {

@@ -20,7 +20,6 @@
             return Id == other.Id;
         }
 
-        public override int GetHashCode()
-            => Id.GetHashCode();
+        public override int GetHashCode() => Id.GetHashCode();
     }
 }

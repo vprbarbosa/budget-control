@@ -11,13 +11,13 @@ namespace BudgetControl.Domain.Entities
         private readonly List<PartialExpense> _expenses = new();
         public IReadOnlyCollection<PartialExpense> Expenses => _expenses;
 
-        public DayAllocation(DateOnly date, Guid? id = null)
+        internal DayAllocation(DateOnly date, Guid? id = null)
             : base(id)
         {
             Date = date;
         }
 
-        public void AddExpense(PartialExpense expense)
+        internal void AddExpense(PartialExpense expense)
         {
             if (IsClosed)
                 throw new InvalidOperationException("Cannot add expense to a closed day.");
@@ -25,7 +25,7 @@ namespace BudgetControl.Domain.Entities
             _expenses.Add(expense);
         }
 
-        public void Close()
+        internal void Close()
         {
             IsClosed = true;
         }
