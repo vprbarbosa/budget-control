@@ -22,4 +22,8 @@
     <ProjectReference Include="..\BudgetControl.Domain\BudgetControl.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Entities\" />
+  </ItemGroup>
+
 </Project>
