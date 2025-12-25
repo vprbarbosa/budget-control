@@ -54,7 +54,7 @@ namespace BudgetControl.Domain.Tests.Aggregates
 
             // meta inicial 100/dia
             // gastar 300 => restante 2700 => 2700/30 = 90
-            cycle.RegisterExpense(new DateOnly(2025, 1, 1), 300, cat, userId, "Combustível");
+            cycle.RegisterExpense(300, cat, userId, "Combustível");
 
             // Act
             var daily = cycle.DailyCapacity;
@@ -77,7 +77,7 @@ namespace BudgetControl.Domain.Tests.Aggregates
             var userId = Guid.NewGuid();
 
             // gasto grande: 150 (3x a meta diária inicial)
-            cycle.RegisterExpense(new DateOnly(2025, 1, 1), 150, cat, userId, "Abastecer carro");
+            cycle.RegisterExpense(150, cat, userId, "Abastecer carro");
 
             // Act
             // restante 350, dias restantes 10 (nenhum fechado) => 35/dia
@@ -112,24 +112,24 @@ namespace BudgetControl.Domain.Tests.Aggregates
         }
 
         [Fact]
-        public void RegisterExpense_ShouldThrow_WhenDayIsClosed()
+        public void RegisterExpense_ShouldThrow_WhenNoOpenDayAvailable()
         {
             // Arrange
             var cycle = TestData.Cycle(
                 start: new DateOnly(2025, 1, 1),
-                days: 10,
+                days: 1,
                 capacity: 500m);
 
-            var day = new DateOnly(2025, 1, 1);
-            cycle.CloseDay(day);
+            cycle.CloseDay(new DateOnly(2025, 1, 1));
 
             var cat = TestData.Category();
             var userId = Guid.NewGuid();
 
             // Act + Assert
             Assert.Throws<InvalidOperationException>(() =>
-                cycle.RegisterExpense(day, 10, cat, userId, "Qualquer"));
+                cycle.RegisterExpense(10, cat, userId, "Qualquer"));
         }
+
 
         [Fact]
         public void DailyCapacity_ShouldBeZero_WhenAllDaysAreClosed()

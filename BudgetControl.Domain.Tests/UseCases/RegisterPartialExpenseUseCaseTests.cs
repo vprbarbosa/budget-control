@@ -19,8 +19,8 @@ namespace BudgetControl.Domain.Tests.UseCases
             var cycleRepo = new InMemoryBudgetCycleRepository();
             var categoryRepo = new InMemorySpendingCategoryRepository();
 
-            var source = new FundingSource("Cartão");
-            var category = new SpendingCategory("Combustível");
+            var source = FundingSource.Create("Cartão");
+            var category = SpendingCategory.Create("Combustível");
             categoryRepo.Add(category);
 
             var cycle = BudgetCycle.Create(source, new DateOnly(2025, 1, 1), 10, 500m);
@@ -30,8 +30,7 @@ namespace BudgetControl.Domain.Tests.UseCases
 
             var input = new RegisterPartialExpenseInput
             {
-                BudgetCycleId = cycle.Id,
-                Date = new DateOnly(2025, 1, 1),
+                BudgetCycleId = cycle.Id,                
                 Amount = 150m,
                 SpendingCategoryId = category.Id,
                 UserId = Guid.NewGuid(),
@@ -46,5 +45,90 @@ namespace BudgetControl.Domain.Tests.UseCases
             Assert.Equal(350m, updated.RemainingCapacity.Amount);
             Assert.Equal(35m, updated.DailyCapacity.Amount); // 350 / 10
         }
+
+        [Fact]
+        public void RegisterExpense_ShouldAddToFirstOpenDay()
+        {
+            var source = FundingSource.Create("Vale Refeição");
+            var cycle = BudgetCycle.Create(
+                source,
+                DateOnly.FromDateTime(DateTime.Today),
+                3,
+                300);
+
+            cycle.CloseDay(DateOnly.FromDateTime(DateTime.Today));
+
+            cycle.RegisterExpense(
+                50,
+                SpendingCategory.Create("Almoço"),
+                Guid.NewGuid(),
+                "Almoço");
+
+            var secondDay = cycle.Days.ElementAt(1);
+
+            Assert.Equal(50, secondDay.TotalSpent.Amount);
+        }
+
+        [Fact]
+        public void RegisterExpense_ShouldFail_WhenAllDaysClosed()
+        {
+            var source = FundingSource.Create("Cartão");
+            var cycle = BudgetCycle.Create(
+                source,
+                DateOnly.FromDateTime(DateTime.Today),
+                1,
+                100);
+
+            cycle.CloseDay(DateOnly.FromDateTime(DateTime.Today));
+
+            Assert.Throws<InvalidOperationException>(() =>
+                cycle.RegisterExpense(
+                    10,
+                    SpendingCategory.Create("Café da manhã"),
+                    Guid.NewGuid()));
+        }
+
+        [Fact]
+        public void AfterClosingDay_ExpenseGoesToNextOpenDay()
+        {
+            var source = FundingSource.Create("Vale Refeição");
+            var cycle = BudgetCycle.Create(
+                source,
+                DateOnly.FromDateTime(DateTime.Today),
+                3,
+                300);
+
+            cycle.CloseCurrentDay();
+
+            cycle.RegisterExpense(
+                50,
+                SpendingCategory.Create("Café da manhã"),
+                Guid.NewGuid(),
+                "Almoço");
+
+            var secondDay = cycle.Days.ElementAt(1);
+
+            Assert.Equal(50, secondDay.TotalSpent.Amount);
+        }
+
+        [Fact]
+        public void RegisterExpense_ShouldFail_WhenCycleIsFinished()
+        {
+            var source = FundingSource.Create("Cartão");
+            var cycle = BudgetCycle.Create(
+                source,
+                DateOnly.FromDateTime(DateTime.Today),
+                1,
+                100);
+
+            cycle.CloseCurrentDay();
+
+            Assert.Throws<InvalidOperationException>(() =>
+                cycle.RegisterExpense(
+                    10,
+                    SpendingCategory.Create("Lanche"),
+                    Guid.NewGuid()));
+        }
+
     }
 }

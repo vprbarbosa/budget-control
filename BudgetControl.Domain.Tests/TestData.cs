@@ -8,10 +8,10 @@ namespace BudgetControl.Domain.Tests
     internal static class TestData
     {
         public static FundingSource Card(string name = "Cartão de crédito")
-            => new FundingSource(name);
+            => FundingSource.Create(name);
 
         public static SpendingCategory Category(string name = "Estacionamento")
-            => new SpendingCategory(name);
+            => SpendingCategory.Create(name);
 
         public static BudgetCycle Cycle(
             DateOnly start,

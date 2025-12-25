@@ -7,30 +7,27 @@ namespace BudgetControl.Application.UseCases.GetDailyBudgetSummary
     public sealed class GetDailyBudgetSummaryUseCase
     {
         private readonly IBudgetCycleRepository _cycleRepository;
-        private readonly IClock _clock;
 
         public GetDailyBudgetSummaryUseCase(
-            IBudgetCycleRepository cycleRepository,
-            IClock clock)
+            IBudgetCycleRepository cycleRepository)
         {
             _cycleRepository = cycleRepository;
-            _clock = clock;
         }
 
-        public async Task<IReadOnlyCollection<DailyBudgetSummaryDto>> ExecuteAsync()
+        public async Task<DailyBudgetSummaryDto> ExecuteAsync(Guid budgetCycleId)
         {
-            var today = _clock.Today();
+            var cycle = await _cycleRepository.GetByIdAsync(budgetCycleId)
+                ?? throw new InvalidOperationException("Budget cycle not found.");
 
-            var cycles = await _cycleRepository.GetActiveCyclesAsync(today);
-
-            return cycles.Select(cycle => new DailyBudgetSummaryDto
+            return new DailyBudgetSummaryDto
             {
                 BudgetCycleId = cycle.Id,
                 FundingSourceName = cycle.Source.Name,
                 DailyCapacity = cycle.DailyCapacity.Amount,
                 RemainingCapacity = cycle.RemainingCapacity.Amount,
                 RemainingDays = cycle.RemainingDays
-            }).ToList();
+            };
         }
     }
+
 }

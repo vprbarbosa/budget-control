@@ -19,13 +19,12 @@ namespace BudgetControl.Application.UseCases.RegisterPartialExpense
         public async Task ExecuteAsync(RegisterPartialExpenseInput input)
         {
             var cycle = await _cycleRepository.GetByIdAsync(input.BudgetCycleId)
-                ?? throw new InvalidOperationException("Budget cycle not found.");
+                ?? throw new InvalidOperationException("Cycle not found.");
 
             var category = await _categoryRepository.GetByIdAsync(input.SpendingCategoryId)
-                ?? throw new InvalidOperationException("Spending category not found.");
+                ?? throw new InvalidOperationException("Category not found.");
 
             cycle.RegisterExpense(
-                input.Date,
                 input.Amount,
                 category,
                 input.UserId,
@@ -33,5 +32,6 @@ namespace BudgetControl.Application.UseCases.RegisterPartialExpense
 
             await _cycleRepository.SaveAsync(cycle);
         }
+
     }
 }

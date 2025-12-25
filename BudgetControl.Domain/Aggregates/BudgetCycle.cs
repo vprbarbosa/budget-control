@@ -67,29 +67,24 @@ namespace BudgetControl.Domain.Aggregates
                 ? Money.Zero
                 : new Money(RemainingCapacity.Amount / RemainingDays);
 
-        // ===== Commands (intention revealing) =====
+        private DayAllocation? CurrentDay =>
+            _days
+                .OrderBy(d => d.Date)
+                .FirstOrDefault(d => !d.IsClosed);
+
+        // ===== Commands =====
 
         public void RegisterExpense(
-            DateOnly date,
             decimal amount,
             SpendingCategory category,
             Guid userId,
             string description = "")
         {
-            RegisterExpense(date, new Money(amount), category, userId, description);
-        }
-
-        private void RegisterExpense(
-            DateOnly date,
-            Money amount,
-            SpendingCategory category,
-            Guid userId,
-            string description = "")
-        {
-            var day = _days.Single(d => d.Date == date);
+            var day = CurrentDay
+                ?? throw new InvalidOperationException("No open day available in this cycle.");
 
             var expense = PartialExpense.Create(
-                amount,
+                new Money(amount),
                 category,
                 userId,
                 description);
@@ -97,31 +92,35 @@ namespace BudgetControl.Domain.Aggregates
             day.AddExpense(expense);
         }
 
+        public void CloseCurrentDay()
+        {
+            var day = CurrentDay
+                ?? throw new InvalidOperationException("No open day to close.");
+
+            day.Close();
+        }
+
+        // Admin / histórico
         public void CloseDay(DateOnly date)
         {
             var day = _days.Single(d => d.Date == date);
+
+            if (day.IsClosed)
+                throw new InvalidOperationException("Day already closed.");
+
             day.Close();
         }
 
         public void AdjustTotalCapacity(decimal newCapacity)
         {
-            AdjustTotalCapacity(new Money(newCapacity));
-        }
-
-        private void AdjustTotalCapacity(Money newCapacity)
-        {
-            TotalCapacity = newCapacity;
+            TotalCapacity = new Money(newCapacity);
         }
 
         public void AdjustPeriod(DateOnly startDate, int estimatedDurationInDays)
         {
-            AdjustPeriod(new CyclePeriod(startDate, estimatedDurationInDays));
-        }
-
-        private void AdjustPeriod(CyclePeriod newPeriod)
-        {
-            Period = newPeriod;
+            Period = new CyclePeriod(startDate, estimatedDurationInDays);
             InitializeDays();
         }
     }
+
 }

@@ -18,19 +18,18 @@ namespace BudgetControl.Domain.Tests.UseCases
             var cycleRepo = new InMemoryBudgetCycleRepository();
             var clock = new FakeClock(new DateOnly(2025, 1, 10));
 
-            var source = new FundingSource("Refeição");
+            var source = FundingSource.Create("Refeição");
             sourceRepo.Add(source);
 
             var cycle = BudgetCycle.Create(source, new DateOnly(2025, 1, 1), 30, 3000m);
             await cycleRepo.SaveAsync(cycle);
 
-            var useCase = new GetDailyBudgetSummaryUseCase(cycleRepo, clock);
+            var useCase = new GetDailyBudgetSummaryUseCase(cycleRepo);
 
             // Act
-            var result = await useCase.ExecuteAsync();
+            var summary = await useCase.ExecuteAsync(cycle.Id);
 
             // Assert
-            var summary = result.Single();
             Assert.Equal(100m, summary.DailyCapacity);
             Assert.Equal(3000m, summary.RemainingCapacity);
             Assert.Equal(30, summary.RemainingDays);
