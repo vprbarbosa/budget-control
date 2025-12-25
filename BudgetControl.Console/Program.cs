@@ -13,7 +13,7 @@ var categoryRepository = new InMemorySpendingCategoryRepository();
 
 // ===== Seed mínimo =====
 var fundingSource = FundingSource.Create("Vale Refeição");
-fundingSourceRepository.Add(fundingSource);
+await fundingSourceRepository.AddAsync(fundingSource);
 
 // Categoria padrão global
 categoryRepository.Add(SpendingCategory.Default);

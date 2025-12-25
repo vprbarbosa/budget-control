@@ -4,7 +4,7 @@ namespace BudgetControl.Application.Abstractions.Persistence
 {
     public interface IFundingSourceRepository
     {
-        void Add(FundingSource source);
+        Task AddAsync(FundingSource source);
 
         Task<FundingSource?> GetByIdAsync(Guid id);
     }
