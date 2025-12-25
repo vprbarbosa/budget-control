@@ -1,7 +1,6 @@
-﻿using BudgetControl.Application.DTOs;
-using BudgetControl.Application.Interfaces;
+﻿using BudgetControl.Application.Abstractions.Persistence;
+using BudgetControl.Application.DTOs;
 using BudgetControl.Domain.Aggregates;
-using BudgetControl.Domain.ValueObjects;
 
 namespace BudgetControl.Application.UseCases.CreateBudgetCycle
 {
@@ -18,10 +17,14 @@ namespace BudgetControl.Application.UseCases.CreateBudgetCycle
             _sourceRepository = sourceRepository;
         }
 
-        public async Task<BudgetCycleCreatedDto> ExecuteAsync(CreateBudgetCycleInput input)
+        public async Task<BudgetCycleCreatedDto> ExecuteAsync(
+            CreateBudgetCycleInput input)
         {
-            var source = await _sourceRepository.GetByIdAsync(input.FundingSourceId)
-                ?? throw new InvalidOperationException("Funding source not found.");
+            var source = await _sourceRepository
+                .GetByIdAsync(input.FundingSourceId);
+
+            if (source is null)
+                throw new InvalidOperationException("Funding source not found.");
 
             var cycle = BudgetCycle.Create(
                 source,
@@ -29,8 +32,7 @@ namespace BudgetControl.Application.UseCases.CreateBudgetCycle
                 input.EstimatedDurationInDays,
                 input.TotalCapacity);
 
-            await _cycleRepository.AddAsync(cycle);
-            await _cycleRepository.SaveChangesAsync();
+            await _cycleRepository.SaveAsync(cycle);
 
             return BudgetCycleCreatedDto.From(cycle);
         }

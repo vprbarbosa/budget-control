@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BudgetControl.Application\BudgetControl.Application.csproj" />
     <ProjectReference Include="..\BudgetControl.Domain\BudgetControl.Domain.csproj" />
   </ItemGroup>
 

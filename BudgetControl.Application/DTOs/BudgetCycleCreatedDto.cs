@@ -5,7 +5,7 @@ namespace BudgetControl.Application.DTOs
 
     public sealed class BudgetCycleCreatedDto
     {
-        public Guid Id { get; init; }
+        public Guid BudgetCycleId { get; init; }
         public DateOnly StartDate { get; init; }
         public int EstimatedDurationInDays { get; init; }
         public decimal TotalCapacity { get; init; }
@@ -14,7 +14,7 @@ namespace BudgetControl.Application.DTOs
         {
             return new BudgetCycleCreatedDto
             {
-                Id = cycle.Id,
+                BudgetCycleId = cycle.Id,
                 StartDate = cycle.Period.StartDate,
                 EstimatedDurationInDays = cycle.Period.EstimatedDurationInDays,
                 TotalCapacity = cycle.TotalCapacity.Amount
