@@ -1,11 +1,11 @@
-﻿using BudgetControl.Domain.Entities;
+﻿using BudgetControl.Domain.Common;
+using BudgetControl.Domain.Entities;
 using BudgetControl.Domain.ValueObjects;
 
 namespace BudgetControl.Domain.Aggregates
 {
-    public sealed class BudgetCycle
+    public sealed class BudgetCycle : Entity
     {
-        public Guid Id { get; }
         public FundingSource Source { get; }
         public CyclePeriod Period { get; private set; }
         public Money TotalCapacity { get; private set; }
@@ -14,12 +14,12 @@ namespace BudgetControl.Domain.Aggregates
         public IReadOnlyCollection<DayAllocation> Days => _days;
 
         public BudgetCycle(
-            Guid id,
             FundingSource source,
             CyclePeriod period,
-            Money totalCapacity)
+            Money totalCapacity,
+            Guid? id = null)
+            : base(id)
         {
-            Id = id;
             Source = source;
             Period = period;
             TotalCapacity = totalCapacity;
@@ -29,6 +29,8 @@ namespace BudgetControl.Domain.Aggregates
 
         private void InitializeDays()
         {
+            _days.Clear();
+
             for (int i = 0; i < Period.EstimatedDurationInDays; i++)
             {
                 _days.Add(new DayAllocation(
@@ -53,6 +55,12 @@ namespace BudgetControl.Domain.Aggregates
         public void AdjustTotalCapacity(Money newCapacity)
         {
             TotalCapacity = newCapacity;
+        }
+
+        public void AdjustPeriod(CyclePeriod newPeriod)
+        {
+            Period = newPeriod;
+            InitializeDays();
         }
     }
 }

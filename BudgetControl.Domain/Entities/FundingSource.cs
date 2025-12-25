@@ -1,16 +1,17 @@
-﻿namespace BudgetControl.Domain.Entities
+﻿using BudgetControl.Domain.Common;
+
+namespace BudgetControl.Domain.Entities
 {
-    public sealed class FundingSource
+    public sealed class FundingSource : Entity
     {
-        public Guid Id { get; }
         public string Name { get; }
 
-        public FundingSource(Guid id, string name)
+        public FundingSource(string name, Guid? id = null)
+            : base(id)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Funding source name is required.");
 
-            Id = id;
             Name = name;
         }
     }

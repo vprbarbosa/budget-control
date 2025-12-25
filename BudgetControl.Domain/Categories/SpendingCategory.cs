@@ -1,16 +1,17 @@
-﻿namespace BudgetControl.Domain.Categories
+﻿using BudgetControl.Domain.Common;
+
+namespace BudgetControl.Domain.Categories
 {
-    public sealed class SpendingCategory
+    public sealed class SpendingCategory : Entity
     {
-        public Guid Id { get; }
         public string Name { get; }
 
-        public SpendingCategory(Guid id, string name)
+        public SpendingCategory(string name, Guid? id = null)
+            : base(id)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Category name is required.");
 
-            Id = id;
             Name = name;
         }
     }

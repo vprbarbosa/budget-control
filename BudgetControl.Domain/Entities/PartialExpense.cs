@@ -1,25 +1,25 @@
 ﻿using BudgetControl.Domain.Categories;
+using BudgetControl.Domain.Common;
 using BudgetControl.Domain.ValueObjects;
 
 namespace BudgetControl.Domain.Entities
 {
-    public sealed class PartialExpense
+    public sealed class PartialExpense : Entity
     {
-        public Guid Id { get; }
         public Money Amount { get; }
-        public string Description { get; }
         public SpendingCategory Category { get; }
+        public string Description { get; }
         public DateTime CreatedAt { get; }
         public Guid CreatedBy { get; }
 
         public PartialExpense(
-            Guid id,
             Money amount,
             SpendingCategory category,
             Guid createdBy,
-            string description = "")
+            string description = "",
+            Guid? id = null)
+            : base(id)
         {
-            Id = id;
             Amount = amount;
             Category = category;
             CreatedBy = createdBy;

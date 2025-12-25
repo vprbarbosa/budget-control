@@ -1,6 +1,8 @@
-﻿namespace BudgetControl.Domain.ValueObjects
+﻿using BudgetControl.Domain.Common;
+
+namespace BudgetControl.Domain.ValueObjects
 {
-    public sealed class CyclePeriod
+    public sealed class CyclePeriod : ValueObject
     {
         public DateOnly StartDate { get; }
         public int EstimatedDurationInDays { get; }
@@ -16,5 +18,11 @@
 
         public DateOnly EstimatedEndDate =>
             StartDate.AddDays(EstimatedDurationInDays - 1);
+
+        protected override IEnumerable<object?> GetEqualityComponents()
+        {
+            yield return StartDate;
+            yield return EstimatedDurationInDays;
+        }
     }
 }
