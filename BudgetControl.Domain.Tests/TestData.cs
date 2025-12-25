@@ -20,8 +20,12 @@ namespace BudgetControl.Domain.Tests
             FundingSource? source = null)
         {
             source ??= Card();
-            var period = new CyclePeriod(start, days);
-            return BudgetCycle.Create(source, period, new Money(capacity));
+
+            return BudgetCycle.Create(
+                source,
+                start,
+                days,
+                capacity);
         }
     }
 }

@@ -7,7 +7,7 @@ namespace BudgetControl.Domain.ValueObjects
         public DateOnly StartDate { get; }
         public int EstimatedDurationInDays { get; }
 
-        public CyclePeriod(DateOnly startDate, int estimatedDurationInDays)
+        internal CyclePeriod(DateOnly startDate, int estimatedDurationInDays)
         {
             if (estimatedDurationInDays <= 0)
                 throw new ArgumentOutOfRangeException(nameof(estimatedDurationInDays));

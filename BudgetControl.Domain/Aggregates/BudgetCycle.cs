@@ -30,10 +30,14 @@ namespace BudgetControl.Domain.Aggregates
 
         public static BudgetCycle Create(
             FundingSource source,
-            CyclePeriod period,
-            Money totalCapacity)
+            DateOnly startDate,
+            int estimatedDurationInDays,
+            decimal totalCapacity)
         {
-            return new BudgetCycle(source, period, totalCapacity);
+            var period = new CyclePeriod(startDate, estimatedDurationInDays);
+            var capacity = new Money(totalCapacity);
+
+            return new BudgetCycle(source, period, capacity);
         }
 
         private void InitializeDays()
@@ -67,6 +71,16 @@ namespace BudgetControl.Domain.Aggregates
 
         public void RegisterExpense(
             DateOnly date,
+            decimal amount,
+            SpendingCategory category,
+            Guid userId,
+            string description = "")
+        {
+            RegisterExpense(date, new Money(amount), category, userId, description);
+        }
+
+        private void RegisterExpense(
+            DateOnly date,
             Money amount,
             SpendingCategory category,
             Guid userId,
@@ -89,12 +103,22 @@ namespace BudgetControl.Domain.Aggregates
             day.Close();
         }
 
-        public void AdjustTotalCapacity(Money newCapacity)
+        public void AdjustTotalCapacity(decimal newCapacity)
+        {
+            AdjustTotalCapacity(new Money(newCapacity));
+        }
+
+        private void AdjustTotalCapacity(Money newCapacity)
         {
             TotalCapacity = newCapacity;
         }
 
-        public void AdjustPeriod(CyclePeriod newPeriod)
+        public void AdjustPeriod(DateOnly startDate, int estimatedDurationInDays)
+        {
+            AdjustPeriod(new CyclePeriod(startDate, estimatedDurationInDays));
+        }
+
+        private void AdjustPeriod(CyclePeriod newPeriod)
         {
             Period = newPeriod;
             InitializeDays();

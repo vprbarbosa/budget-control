@@ -6,7 +6,7 @@ namespace BudgetControl.Domain.ValueObjects
     {
         public decimal Amount { get; }
 
-        public Money(decimal amount)
+        internal Money(decimal amount)
         {
             if (amount < 0)
                 throw new ArgumentOutOfRangeException(nameof(amount));
@@ -16,6 +16,7 @@ namespace BudgetControl.Domain.ValueObjects
 
         public static Money Zero => new(0);
 
+        // ⚠️ ESTES DEVEM SER PUBLIC
         public Money Add(Money other) => new(Amount + other.Amount);
 
         public Money Subtract(Money other)
