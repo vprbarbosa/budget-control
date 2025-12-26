@@ -14,8 +14,6 @@ namespace BudgetControl.Infrastructure.EF.Persistence
 
         public DbSet<BudgetCycle> BudgetCycles => Set<BudgetCycle>();
         public DbSet<FundingSource> FundingSources => Set<FundingSource>();
-        public DbSet<SpendingCategory> SpendingCategories => Set<SpendingCategory>();
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(BudgetControlDbContext).Assembly);

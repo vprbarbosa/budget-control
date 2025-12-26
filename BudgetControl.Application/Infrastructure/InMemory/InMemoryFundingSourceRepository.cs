@@ -7,7 +7,7 @@ namespace BudgetControl.Application.Infrastructure.InMemory
     {
         private readonly Dictionary<Guid, FundingSource> _sources = new();
 
-        public Task AddAsync(FundingSource source)
+        public Task SaveAsync(FundingSource source)
             => Task.FromResult(_sources[source.Id] = source);
 
         public Task<FundingSource?> GetByIdAsync(Guid id)

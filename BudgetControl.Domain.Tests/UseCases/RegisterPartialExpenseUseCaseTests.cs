@@ -32,8 +32,6 @@ namespace BudgetControl.Domain.Tests.UseCases
             {
                 BudgetCycleId = cycle.Id,                
                 Amount = 150m,
-                SpendingCategoryId = category.Id,
-                UserId = Guid.NewGuid(),
                 Description = "Abastecimento"
             };
 
@@ -60,8 +58,6 @@ namespace BudgetControl.Domain.Tests.UseCases
 
             cycle.RegisterExpense(
                 50,
-                SpendingCategory.Create("Almoço"),
-                Guid.NewGuid(),
                 "Almoço");
 
             var secondDay = cycle.Days.ElementAt(1);
@@ -83,9 +79,7 @@ namespace BudgetControl.Domain.Tests.UseCases
 
             Assert.Throws<InvalidOperationException>(() =>
                 cycle.RegisterExpense(
-                    10,
-                    SpendingCategory.Create("Café da manhã"),
-                    Guid.NewGuid()));
+                    10));
         }
 
         [Fact]
@@ -102,8 +96,6 @@ namespace BudgetControl.Domain.Tests.UseCases
 
             cycle.RegisterExpense(
                 50,
-                SpendingCategory.Create("Café da manhã"),
-                Guid.NewGuid(),
                 "Almoço");
 
             var secondDay = cycle.Days.ElementAt(1);
@@ -125,9 +117,7 @@ namespace BudgetControl.Domain.Tests.UseCases
 
             Assert.Throws<InvalidOperationException>(() =>
                 cycle.RegisterExpense(
-                    10,
-                    SpendingCategory.Create("Lanche"),
-                    Guid.NewGuid()));
+                    10));
         }
 
     }

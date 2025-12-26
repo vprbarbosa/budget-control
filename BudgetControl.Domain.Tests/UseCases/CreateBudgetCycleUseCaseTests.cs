@@ -15,7 +15,7 @@ namespace BudgetControl.Domain.Tests.UseCases
             var cycleRepo = new InMemoryBudgetCycleRepository();
 
             var source = FundingSource.Create("Cartão de crédito");
-            await sourceRepo.AddAsync(source);
+            await sourceRepo.SaveAsync(source);
 
             var useCase = new CreateBudgetCycleUseCase(cycleRepo, sourceRepo);
 

@@ -75,18 +75,14 @@ namespace BudgetControl.Domain.Aggregates
         // ===== Commands =====
 
         public void RegisterExpense(
-            decimal amount,
-            SpendingCategory category,
-            Guid userId,
+            decimal amount,            
             string description = "")
         {
             var day = CurrentDay
                 ?? throw new InvalidOperationException("No open day available in this cycle.");
 
             var expense = PartialExpense.Create(
-                new Money(amount),
-                category,
-                userId,
+                new Money(amount),                
                 description);
 
             day.AddExpense(expense);

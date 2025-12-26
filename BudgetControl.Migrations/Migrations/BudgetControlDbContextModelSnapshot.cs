@@ -17,7 +17,7 @@ namespace BudgetControl.Migrations.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.1")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -35,21 +35,6 @@ namespace BudgetControl.Migrations.Migrations
                     b.HasIndex("FundingSourceId");
 
                     b.ToTable("budget_cycles", (string)null);
-                });
-
-            modelBuilder.Entity("BudgetControl.Domain.Categories.SpendingCategory", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("spending_categories", (string)null);
                 });
 
             modelBuilder.Entity("BudgetControl.Domain.Entities.FundingSource", b =>
@@ -123,10 +108,6 @@ namespace BudgetControl.Migrations.Migrations
                                     b2.Property<Guid>("Id")
                                         .HasColumnType("uuid");
 
-                                    b2.Property<Guid>("CreatedBy")
-                                        .HasColumnType("uuid")
-                                        .HasColumnName("user_id");
-
                                     b2.Property<Guid>("DayAllocationId")
                                         .HasColumnType("uuid");
 
@@ -136,25 +117,14 @@ namespace BudgetControl.Migrations.Migrations
                                         .HasColumnType("character varying(600)")
                                         .HasColumnName("description");
 
-                                    b2.Property<Guid>("SpendingCategoryId")
-                                        .HasColumnType("uuid");
-
                                     b2.HasKey("Id");
 
                                     b2.HasIndex("DayAllocationId");
-
-                                    b2.HasIndex("SpendingCategoryId");
 
                                     b2.ToTable("partial_expenses", (string)null);
 
                                     b2.WithOwner()
                                         .HasForeignKey("DayAllocationId");
-
-                                    b2.HasOne("BudgetControl.Domain.Categories.SpendingCategory", "Category")
-                                        .WithMany()
-                                        .HasForeignKey("SpendingCategoryId")
-                                        .OnDelete(DeleteBehavior.Cascade)
-                                        .IsRequired();
 
                                     b2.OwnsOne("BudgetControl.Domain.ValueObjects.Money", "Amount", b3 =>
                                         {
@@ -176,8 +146,6 @@ namespace BudgetControl.Migrations.Migrations
 
                                     b2.Navigation("Amount")
                                         .IsRequired();
-
-                                    b2.Navigation("Category");
                                 });
 
                             b1.Navigation("Expenses");

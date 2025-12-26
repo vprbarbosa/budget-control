@@ -24,18 +24,6 @@ namespace BudgetControl.Migrations.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "spending_categories",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_spending_categories", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "budget_cycles",
                 columns: table => new
                 {
@@ -82,9 +70,7 @@ namespace BudgetControl.Migrations.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     amount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
-                    SpendingCategoryId = table.Column<Guid>(type: "uuid", nullable: false),
                     description = table.Column<string>(type: "character varying(600)", maxLength: 600, nullable: false),
-                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     DayAllocationId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -94,12 +80,6 @@ namespace BudgetControl.Migrations.Migrations
                         name: "FK_partial_expenses_day_allocations_DayAllocationId",
                         column: x => x.DayAllocationId,
                         principalTable: "day_allocations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_partial_expenses_spending_categories_SpendingCategoryId",
-                        column: x => x.SpendingCategoryId,
-                        principalTable: "spending_categories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -118,11 +98,6 @@ namespace BudgetControl.Migrations.Migrations
                 name: "IX_partial_expenses_DayAllocationId",
                 table: "partial_expenses",
                 column: "DayAllocationId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_partial_expenses_SpendingCategoryId",
-                table: "partial_expenses",
-                column: "SpendingCategoryId");
         }
 
         /// <inheritdoc />
@@ -133,9 +108,6 @@ namespace BudgetControl.Migrations.Migrations
 
             migrationBuilder.DropTable(
                 name: "day_allocations");
-
-            migrationBuilder.DropTable(
-                name: "spending_categories");
 
             migrationBuilder.DropTable(
                 name: "budget_cycles");

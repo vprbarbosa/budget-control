@@ -49,12 +49,9 @@ namespace BudgetControl.Domain.Tests.Aggregates
                 days: 30,
                 capacity: 3000m);
 
-            var cat = TestData.Category();
-            var userId = Guid.NewGuid();
-
             // meta inicial 100/dia
             // gastar 300 => restante 2700 => 2700/30 = 90
-            cycle.RegisterExpense(300, cat, userId, "Combustível");
+            cycle.RegisterExpense(300, "Combustível");
 
             // Act
             var daily = cycle.DailyCapacity;
@@ -73,11 +70,8 @@ namespace BudgetControl.Domain.Tests.Aggregates
                 days: 10,
                 capacity: 500m);
 
-            var cat = TestData.Category();
-            var userId = Guid.NewGuid();
-
             // gasto grande: 150 (3x a meta diária inicial)
-            cycle.RegisterExpense(150, cat, userId, "Abastecer carro");
+            cycle.RegisterExpense(150, "Abastecer carro");
 
             // Act
             // restante 350, dias restantes 10 (nenhum fechado) => 35/dia
@@ -122,12 +116,9 @@ namespace BudgetControl.Domain.Tests.Aggregates
 
             cycle.CloseDay(new DateOnly(2025, 1, 1));
 
-            var cat = TestData.Category();
-            var userId = Guid.NewGuid();
-
             // Act + Assert
             Assert.Throws<InvalidOperationException>(() =>
-                cycle.RegisterExpense(10, cat, userId, "Qualquer"));
+                cycle.RegisterExpense(10, "Qualquer"));
         }
 
 

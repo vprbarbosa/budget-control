@@ -75,10 +75,6 @@ namespace BudgetControl.Infrastructure.EF.Persistence.Configurations
                     exp.Property<Guid>("Id")
                         .ValueGeneratedNever();
 
-                    exp.Property(e => e.CreatedBy)
-                        .HasColumnName("user_id")
-                        .IsRequired();
-
                     exp.Property(e => e.Description)
                         .HasColumnName("description")
                         .HasMaxLength(600);
@@ -90,11 +86,6 @@ namespace BudgetControl.Infrastructure.EF.Persistence.Configurations
                             .HasPrecision(18, 2)
                             .IsRequired();
                     });
-
-                    exp.HasOne(e => e.Category)
-                        .WithMany()
-                        .HasForeignKey("SpendingCategoryId")
-                        .IsRequired();
                 });
             });
 

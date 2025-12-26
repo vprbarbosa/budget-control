@@ -19,7 +19,7 @@ namespace BudgetControl.Domain.Tests.UseCases
             var clock = new FakeClock(new DateOnly(2025, 1, 10));
 
             var source = FundingSource.Create("Refeição");
-            await sourceRepo.AddAsync(source);
+            await sourceRepo.SaveAsync(source);
 
             var cycle = BudgetCycle.Create(source, new DateOnly(2025, 1, 1), 30, 3000m);
             await cycleRepo.SaveAsync(cycle);

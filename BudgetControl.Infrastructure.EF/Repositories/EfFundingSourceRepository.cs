@@ -17,7 +17,7 @@ namespace BudgetControl.Infrastructure.EF.Repositories
         public Task<FundingSource?> GetByIdAsync(Guid id)
             => _db.FundingSources.FirstOrDefaultAsync(x => x.Id == id);
 
-        public async Task AddAsync(FundingSource source)
+        public async Task SaveAsync(FundingSource source)
         {
             await _db.FundingSources.AddAsync(source);
             await _db.SaveChangesAsync();
