@@ -5,6 +5,7 @@ using BudgetControl.Application.UseCases.CreateFundingSource;
 using BudgetControl.Application.UseCases.GetBudgetCycleDays;
 using BudgetControl.Application.UseCases.GetBudgetCycleDetails;
 using BudgetControl.Application.UseCases.GetDailyBudgetSummary;
+using BudgetControl.Application.UseCases.GetDayExpenses;
 using BudgetControl.Application.UseCases.RegisterPartialExpense;
 using BudgetControl.Infrastructure.EF;
 using BudgetControl.Infrastructure.EF.Persistence;
@@ -48,6 +49,7 @@ builder.Services.AddScoped<GetDailyBudgetSummaryUseCase>();
 builder.Services.AddScoped<CloseDayUseCase>();
 builder.Services.AddScoped<GetBudgetCycleDetailsUseCase>();
 builder.Services.AddScoped<GetBudgetCycleDaysUseCase>();
+builder.Services.AddScoped<GetDayExpensesUseCase>();
 
 // ============================
 // App
