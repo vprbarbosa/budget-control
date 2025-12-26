@@ -22,6 +22,12 @@ namespace BudgetControl.Domain.Categories
             new SpendingCategory(
                 "Geral",
                 Guid.Parse("00000000-0000-0000-0000-000000000001"));
+
+        private SpendingCategory()
+        : base(null)
+        {
+
+        }
     }
 
 }

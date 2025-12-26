@@ -63,9 +63,6 @@ namespace BudgetControl.Infrastructure.EF.Persistence.Configurations
                     .HasColumnName("is_closed")
                     .IsRequired();
 
-                dayBuilder.Navigation(d => d.Expenses)
-                    .UsePropertyAccessMode(PropertyAccessMode.Field);
-
                 dayBuilder.OwnsMany(d => d.Expenses, exp =>
                 {
                     exp.ToTable("partial_expenses");
@@ -90,7 +87,7 @@ namespace BudgetControl.Infrastructure.EF.Persistence.Configurations
                     {
                         m.Property(x => x.Amount)
                             .HasColumnName("amount")
-                            .HasPrecision(18,2)
+                            .HasPrecision(18, 2)
                             .IsRequired();
                     });
 

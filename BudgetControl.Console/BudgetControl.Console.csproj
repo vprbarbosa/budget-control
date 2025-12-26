@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BudgetControl.Domain\BudgetControl.Domain.csproj" />
     <ProjectReference Include="..\BudgetControl.Application\BudgetControl.Application.csproj" />
+    <ProjectReference Include="..\BudgetControl.Infrastructure.EF\BudgetControl.Infrastructure.EF.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -32,5 +32,10 @@ namespace BudgetControl.Domain.Entities
 
         public Money TotalSpent =>
             _expenses.Aggregate(Money.Zero, (acc, e) => acc.Add(e.Amount));
+
+        private DayAllocation()
+        : base(null)
+        {
+        }
     }
 }

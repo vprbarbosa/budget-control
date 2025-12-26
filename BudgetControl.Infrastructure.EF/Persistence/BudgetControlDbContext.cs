@@ -19,7 +19,6 @@ namespace BudgetControl.Infrastructure.EF.Persistence
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(BudgetControlDbContext).Assembly);
-            base.OnModelCreating(modelBuilder);
         }
     }
 }

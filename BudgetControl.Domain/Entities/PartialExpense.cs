@@ -35,5 +35,10 @@ namespace BudgetControl.Domain.Entities
         {
             return new PartialExpense(amount, category, createdBy, description);
         }
+
+        private PartialExpense()
+        : base(null)
+        {
+        }
     }
 }

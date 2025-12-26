@@ -121,6 +121,11 @@ namespace BudgetControl.Domain.Aggregates
             Period = new CyclePeriod(startDate, estimatedDurationInDays);
             InitializeDays();
         }
+
+        private BudgetCycle() : base(null)
+        {
+            // EF Core only
+        }
     }
 
 }

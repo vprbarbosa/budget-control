@@ -12,7 +12,7 @@ namespace BudgetControl.Migrations.Persistence
             var optionsBuilder = new DbContextOptionsBuilder<BudgetControlDbContext>();
 
             optionsBuilder.UseNpgsql(
-                "Host=localhost;Port=5432;Database=budget_control;Username=postgres;Password=postgres",
+                "Host=localhost;Port=5432;Database=budget_control;Username=budget;Password=budget;",
                 b => b.MigrationsAssembly("BudgetControl.Migrations"));
 
             return new BudgetControlDbContext(optionsBuilder.Options);

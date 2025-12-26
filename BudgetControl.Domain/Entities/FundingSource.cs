@@ -19,5 +19,10 @@ namespace BudgetControl.Domain.Entities
 
             return new FundingSource(name);
         }
+
+        private FundingSource()
+        : base(null)
+        {
+        }
     }
 }
