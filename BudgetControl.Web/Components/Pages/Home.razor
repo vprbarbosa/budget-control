@@ -1,0 +1,119 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@inject BudgetControl.Web.Services.BudgetApiClient Api
+
+@if (_summary is null)
+{
+    <p>Carregando...</p>
+}
+else
+{
+    <h3>@_summary.FundingSourceName</h3>
+
+    <div style="font-size: 1.5rem;">
+        <p><strong>Meta diária:</strong> @_summary.DailyCapacity</p>
+        <p><strong>Total restante:</strong> @_summary.RemainingCapacity</p>
+        <p><strong>Dias restantes:</strong> @_summary.RemainingDays</p>
+    </div>
+
+    <table style="width:100%; margin-top:20px; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th style="text-align:left;">Data</th>
+                <th style="text-align:left;">Dia</th>
+                <th style="text-align:right;">Gasto</th>
+                <th style="text-align:center;">Fechado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var day in _days)
+            {
+                <tr style="cursor:pointer" @onclick="async () => await OpenDay(day.Date)">
+                    <td>@day.Date.ToString("dd/MM")</td>
+                    <td>@day.Date.DayOfWeek</td>
+                    <td style="text-align:right;">
+                        @day.TotalSpent.ToString("C")
+                    </td>
+                    <td style="text-align:center;">
+                        @(day.IsClosed ? "✔" : "")
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (_showDayModal)
+    {
+        <div style="
+            position:fixed;
+            top:0;
+            left:0;
+            right:0;
+            bottom:0;
+            background:rgba(0,0,0,0.4);">
+
+            <div style="
+                background:white;
+                width:400px;
+                margin:80px auto;
+                padding:20px;
+                border-radius:6px;">
+
+                <h3>@_selectedDate.ToString("dd/MM/yyyy")</h3>
+
+                @if (_expenses.Any())
+                {
+                    <ul>
+                        @foreach (var e in _expenses)
+                        {
+                            <li>
+                                <strong>@e.Amount.ToString("C")</strong> —
+                                @e.Description
+                                <em>(@e.Description)</em>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p>Nenhum gasto neste dia.</p>
+                }
+
+                <button @onclick="CloseModal">Fechar</button>
+            </div>
+        </div>
+    }
+
+}
+
+@code {
+    private DailyBudgetSummaryDto? _summary;
+
+    private IReadOnlyCollection<BudgetCycleDayDto> _days = Array.Empty<BudgetCycleDayDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var cycleId = Guid.Parse("7c098c29-cde1-4723-98e7-a240eae69641");
+
+        _summary = await Api.GetDailySummary(cycleId);
+        _days = await Api.GetDays(cycleId);
+    }
+
+    private bool _showDayModal;
+    private DateOnly _selectedDate;
+    private IReadOnlyCollection<DayExpenseDto> _expenses = Array.Empty<DayExpenseDto>();
+
+    private async Task OpenDay(DateOnly date)
+    {
+        _selectedDate = date;
+        _expenses = await Api.GetExpenses(_summary.BudgetCycleId, date);
+        _showDayModal = true;
+    }
+
+
+    private void CloseModal()
+    {
+        _showDayModal = false;
+        _expenses = Array.Empty<DayExpenseDto>();
+    }
+}
