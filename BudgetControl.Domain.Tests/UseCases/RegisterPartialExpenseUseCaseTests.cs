@@ -26,7 +26,7 @@ namespace BudgetControl.Domain.Tests.UseCases
             var cycle = BudgetCycle.Create(source, new DateOnly(2025, 1, 1), 10, 500m);
             await cycleRepo.SaveAsync(cycle);
 
-            var useCase = new RegisterPartialExpenseUseCase(cycleRepo, categoryRepo);
+            var useCase = new RegisterPartialExpenseUseCase(cycleRepo);
 
             var input = new RegisterPartialExpenseInput
             {

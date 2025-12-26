@@ -24,8 +24,8 @@ var createCycle = new CreateBudgetCycleUseCase(
     fundingSourceRepository);
 
 var registerExpense = new RegisterPartialExpenseUseCase(
-    cycleRepository,
-    categoryRepository);
+    cycleRepository
+    );
 
 var getDailySummary = new GetDailyBudgetSummaryUseCase(
     cycleRepository);
