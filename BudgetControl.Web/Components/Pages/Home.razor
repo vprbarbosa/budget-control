@@ -54,22 +54,24 @@ else
 
             <div style="
                 background:white;
-                width:400px;
+                width:420px;
                 margin:80px auto;
                 padding:20px;
                 border-radius:6px;">
 
                 <h3>@_selectedDate.ToString("dd/MM/yyyy")</h3>
 
+                <hr />
+
+                <!-- Lista de gastos -->
                 @if (_expenses.Any())
                 {
                     <ul>
                         @foreach (var e in _expenses)
                         {
                             <li>
-                                <strong>@e.Amount.ToString("C")</strong> —
-                                @e.Description
-                                <em>(@e.Description)</em>
+                                <strong>@e.Amount.ToString("C")</strong>
+                                — @e.Description
                             </li>
                         }
                     </ul>
@@ -79,16 +81,46 @@ else
                     <p>Nenhum gasto neste dia.</p>
                 }
 
-                <button @onclick="CloseModal">Fechar</button>
+                <hr />
+
+                <!-- Formulário de novo gasto -->
+                <h4>Novo gasto</h4>
+
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    
+                    <input type="number" @bind="_newExpenseAmount" />
+                    <input type="text" @bind="_newExpenseDescription" />
+
+                    <button @onclick="AddExpense">
+                        Adicionar
+                    </button>
+                </div>
+
+                <hr />
+
+                <div style="display:flex; justify-content:space-between;">
+                    <button @onclick="CloseModal">Fechar</button>
+                    
+                    <button style="background:#eee;" @onclick="CloseDay">
+                        Fechar dia
+                    </button>
+                </div>
             </div>
         </div>
+        
     }
+
 
 }
 
 @code {
     private DailyBudgetSummaryDto? _summary;
-
+    private decimal _newExpenseAmount;
+    private string _newExpenseDescription = string.Empty;
+    private bool _showDayModal;
+    private DateOnly _selectedDate;
+    
+    private IReadOnlyCollection<DayExpenseDto> _expenses = Array.Empty<DayExpenseDto>();
     private IReadOnlyCollection<BudgetCycleDayDto> _days = Array.Empty<BudgetCycleDayDto>();
 
     protected override async Task OnInitializedAsync()
@@ -98,10 +130,6 @@ else
         _summary = await Api.GetDailySummary(cycleId);
         _days = await Api.GetDays(cycleId);
     }
-
-    private bool _showDayModal;
-    private DateOnly _selectedDate;
-    private IReadOnlyCollection<DayExpenseDto> _expenses = Array.Empty<DayExpenseDto>();
 
     private async Task OpenDay(DateOnly date)
     {
@@ -115,5 +143,67 @@ else
     {
         _showDayModal = false;
         _expenses = Array.Empty<DayExpenseDto>();
+    }
+
+    private void AddExpenseLocal()
+    {
+        if (_newExpenseAmount <= 0)
+            return;
+
+        _expenses = _expenses.Append(new DayExpenseDto
+        {
+            Id = Guid.NewGuid(),
+            Amount = _newExpenseAmount,
+            Description = _newExpenseDescription
+        }).ToList();
+
+        _newExpenseAmount = 0;
+        _newExpenseDescription = string.Empty;
+    }
+
+    private async Task AddExpense()
+    {
+        if (_newExpenseAmount <= 0)
+            return;
+
+        await Api.RegisterExpense(new RegisterPartialExpenseInput
+        {
+            BudgetCycleId = _summary!.BudgetCycleId,
+            Amount = _newExpenseAmount,
+            Description = _newExpenseDescription
+        });
+
+        // Recarrega tudo
+        _expenses = await Api.GetExpenses(_summary.BudgetCycleId, _selectedDate);
+        _summary = await Api.GetDailySummary(_summary.BudgetCycleId);
+        _days = await Api.GetDays(_summary.BudgetCycleId);
+
+        _newExpenseAmount = 0;
+        _newExpenseDescription = string.Empty;
+    }
+
+    private async Task CloseDay()
+    {
+        await Api.CloseCurrentDay(_summary.BudgetCycleId);
+
+        // Recarrega tudo
+        _summary = await Api.GetDailySummary(_summary.BudgetCycleId);
+        _days = await Api.GetDays(_summary.BudgetCycleId);
+
+        // Atualiza o dia selecionado:
+        // se ainda existir um dia aberto, mostra o próximo
+        var nextOpenDay = _days.FirstOrDefault(d => !d.IsClosed);
+
+        if (nextOpenDay is not null)
+        {
+            _selectedDate = nextOpenDay.Date;
+            _expenses = await Api.GetExpenses(_summary.BudgetCycleId, _selectedDate);
+        }
+        else
+        {
+            // ciclo encerrado
+            _showDayModal = false;
+            _expenses = Array.Empty<DayExpenseDto>();
+        }
     }
 }

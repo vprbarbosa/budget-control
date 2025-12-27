@@ -37,6 +37,30 @@ namespace BudgetControl.Web.Services
                 ?? Array.Empty<DayExpenseDto>();
         }
 
+        public async Task RegisterExpense(RegisterPartialExpenseInput request)
+        {
+            var response = await _http.PostAsJsonAsync("api/expenses", request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new InvalidOperationException(error);
+            }
+        }
+
+        public async Task CloseCurrentDay(Guid cycleId)
+        {
+            var response = await _http.PostAsync(
+                $"api/budget-cycles/{cycleId}/close-day",
+                null);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                throw new InvalidOperationException(error);
+            }
+        }
+
     }
 
 }
