@@ -1,6 +1,7 @@
 ﻿using BudgetControl.Api.DTOs;
 using BudgetControl.Application.DTOs;
 using BudgetControl.Application.UseCases.CreateBudgetCycle;
+using BudgetControl.Application.UseCases.GetAllBudgetCycles;
 using BudgetControl.Application.UseCases.GetBudgetCycleDays;
 using BudgetControl.Application.UseCases.GetBudgetCycleDetails;
 using Microsoft.AspNetCore.Mvc;
@@ -73,6 +74,14 @@ namespace BudgetControl.Api.Controllers
             {
                 return NotFound(new { message = ex.Message });
             }
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IReadOnlyCollection<BudgetCycleListItemDto>>> GetAll([FromServices] GetAllBudgetCyclesUseCase useCase)
+        {
+            var result = await useCase.ExecuteAsync();
+
+            return Ok(result);
         }
 
     }

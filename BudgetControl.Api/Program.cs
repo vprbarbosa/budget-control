@@ -2,6 +2,8 @@ using BudgetControl.Application.Abstractions.Persistence;
 using BudgetControl.Application.UseCases.CloseDay;
 using BudgetControl.Application.UseCases.CreateBudgetCycle;
 using BudgetControl.Application.UseCases.CreateFundingSource;
+using BudgetControl.Application.UseCases.GetAllBudgetCycles;
+using BudgetControl.Application.UseCases.GetAllFundingSources;
 using BudgetControl.Application.UseCases.GetBudgetCycleDays;
 using BudgetControl.Application.UseCases.GetBudgetCycleDetails;
 using BudgetControl.Application.UseCases.GetDailyBudgetSummary;
@@ -50,6 +52,10 @@ builder.Services.AddScoped<CloseDayUseCase>();
 builder.Services.AddScoped<GetBudgetCycleDetailsUseCase>();
 builder.Services.AddScoped<GetBudgetCycleDaysUseCase>();
 builder.Services.AddScoped<GetDayExpensesUseCase>();
+builder.Services.AddScoped<GetAllBudgetCyclesUseCase>();
+builder.Services.AddScoped<GetAllFundingSourcesUseCase>();
+
+builder.WebHost.UseUrls("http://0.0.0.0:5000");
 
 // ============================
 // App

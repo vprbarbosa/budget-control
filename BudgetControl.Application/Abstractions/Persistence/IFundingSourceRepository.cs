@@ -7,5 +7,7 @@ namespace BudgetControl.Application.Abstractions.Persistence
         Task SaveAsync(FundingSource source);
 
         Task<FundingSource?> GetByIdAsync(Guid id);
+
+        Task<IReadOnlyCollection<FundingSource>> GetAllAsync();
     }
 }

@@ -15,5 +15,10 @@ namespace BudgetControl.Application.Infrastructure.InMemory
             _sources.TryGetValue(id, out var source);
             return Task.FromResult(source);
         }
+
+        public Task<IReadOnlyCollection<FundingSource>> GetAllAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

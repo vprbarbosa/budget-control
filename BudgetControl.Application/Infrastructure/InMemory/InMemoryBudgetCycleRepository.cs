@@ -38,5 +38,10 @@ namespace BudgetControl.Application.Infrastructure.InMemory
 
         public IReadOnlyCollection<BudgetCycle> All() 
             => _cycles.AsReadOnly();
+
+        public Task<IReadOnlyCollection<BudgetCycle>> GetAllAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using BudgetControl.Api.DTOs;
 using BudgetControl.Application.Abstractions.Persistence;
 using BudgetControl.Application.UseCases.CreateFundingSource;
+using BudgetControl.Application.UseCases.GetAllFundingSources;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -54,6 +55,14 @@ namespace BudgetControl.Api.Controllers
                 return NotFound();
 
             return Ok(FundingSourceDto.From(source));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromServices] GetAllFundingSourcesUseCase useCase)
+        {
+            var result = await useCase.ExecuteAsync();
+            
+            return Ok(result);
         }
     }
 }

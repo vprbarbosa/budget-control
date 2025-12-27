@@ -1,0 +1,175 @@
+﻿@inject BudgetControl.Web.Services.BudgetApiClient Api
+
+@if (_summary is null)
+{
+    <p>Carregando...</p>
+}
+else
+{
+    <div style="margin-top:10px;">
+        <p><strong>Meta diária:</strong> @_summary.DailyCapacity</p>
+        <p><strong>Total restante:</strong> @_summary.RemainingCapacity</p>
+        <p><strong>Dias restantes:</strong> @_summary.RemainingDays</p>
+    </div>
+
+    <table style="width:100%; margin-top:15px; border-collapse:collapse;">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Dia</th>
+                <th style="text-align:right;">Gasto</th>
+                <th style="text-align:center;">Fechado</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var day in _days)
+            {
+                <tr style="cursor:pointer"
+                    @onclick="() => OpenDay(day.Date)">
+                    <td>@day.Date.ToString("dd/MM")</td>
+                    <td>@day.Date.DayOfWeek</td>
+                    <td style="text-align:right;">@day.TotalSpent.ToString("C")</td>
+                    <td style="text-align:center;">@(day.IsClosed ? "✔" : "")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (_showDayModal)
+    {
+        <div style="
+            position:fixed;
+            top:0;
+            left:0;
+            right:0;
+            bottom:0;
+            background:rgba(0,0,0,0.4);">
+
+            <div style="
+                background:white;
+                width:420px;
+                margin:80px auto;
+                padding:20px;
+                border-radius:6px;">
+
+                <h3>@_selectedDate.ToString("dd/MM/yyyy")</h3>
+
+                <hr />
+
+                <!-- Lista de gastos -->
+                @if (_expenses.Any())
+                {
+                    <ul>
+                        @foreach (var e in _expenses)
+                        {
+                            <li>
+                                <strong>@e.Amount.ToString("C")</strong>
+                                — @e.Description
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p>Nenhum gasto neste dia.</p>
+                }
+
+                <hr />
+
+                <!-- Formulário de novo gasto -->
+                <h4 style="margin:10px 0; color:#111;">Novo gasto</h4>
+
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <label style="display:block; font-weight:600; color:#111;">Valor</label>
+                    <input type="number" step="0.01" @bind="_newExpenseAmount" style="width:100%;" />
+
+                    <label style="display:block; font-weight:600; color:#111;">Descrição</label>
+                    <input type="text" @bind="_newExpenseDescription" style="width:100%;" />
+
+                    <button style="margin-top:6px;" @onclick="AddExpense">Adicionar</button>
+                </div>
+
+                <hr />
+
+                <div style="display:flex; justify-content:space-between;">
+                    <button @onclick="CloseModal">Fechar</button>
+                    
+                    <button style="background:#eee;" @onclick="CloseDay">
+                        Fechar dia
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter] public Guid CycleId { get; set; }
+
+    private DailyBudgetSummaryDto? _summary;
+    private IReadOnlyCollection<BudgetCycleDayDto> _days = Array.Empty<BudgetCycleDayDto>();
+    private IReadOnlyCollection<DayExpenseDto> _expenses = Array.Empty<DayExpenseDto>();
+
+    private bool _showDayModal;
+    private DateOnly _selectedDate;
+    private decimal _newExpenseAmount;
+    private string _newExpenseDescription = "";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _summary = await Api.GetDailySummary(CycleId);
+        _days = await Api.GetDays(CycleId);
+    }
+
+    private async Task OpenDay(DateOnly date)
+    {
+        _selectedDate = date;
+        _expenses = await Api.GetExpenses(CycleId, date);
+        _showDayModal = true;
+    }
+
+    private void CloseModal()
+    {
+        _showDayModal = false;
+        _expenses = Array.Empty<DayExpenseDto>();
+    }
+
+    private async Task AddExpense()
+    {
+        if (_newExpenseAmount <= 0)
+            return;
+
+        await Api.RegisterExpense(new RegisterPartialExpenseInput
+        {
+            BudgetCycleId = CycleId,
+            Amount = _newExpenseAmount,
+            Description = _newExpenseDescription
+        });
+
+        _expenses = await Api.GetExpenses(CycleId, _selectedDate);
+        _summary = await Api.GetDailySummary(CycleId);
+        _days = await Api.GetDays(CycleId);
+
+        _newExpenseAmount = 0;
+        _newExpenseDescription = "";
+    }
+
+    private async Task CloseDay()
+    {
+        await Api.CloseCurrentDay(CycleId);
+
+        _summary = await Api.GetDailySummary(CycleId);
+        _days = await Api.GetDays(CycleId);
+
+        var next = _days.FirstOrDefault(d => !d.IsClosed);
+        if (next is not null)
+        {
+            _selectedDate = next.Date;
+            _expenses = await Api.GetExpenses(CycleId, _selectedDate);
+        }
+        else
+        {
+            CloseModal();
+        }
+    }
+}

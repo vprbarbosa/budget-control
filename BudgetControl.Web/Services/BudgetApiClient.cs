@@ -1,4 +1,6 @@
-﻿using BudgetControl.Application.DTOs;
+﻿using BudgetControl.Api.DTOs;
+using BudgetControl.Application.DTOs;
+using BudgetControl.Web.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,6 +14,22 @@ namespace BudgetControl.Web.Services
         public BudgetApiClient(IHttpClientFactory factory)
         {
             _http = factory.CreateClient("BudgetApi");
+        }
+
+        public async Task<IReadOnlyCollection<BudgetCycleListItemDto>> GetAllCycles()
+        {
+            return await _http.GetFromJsonAsync<IReadOnlyCollection<BudgetCycleListItemDto>>(
+                "/api/budget-cycles")
+                ?? Array.Empty<BudgetCycleListItemDto>();
+        }
+
+        public async Task<Guid> CreateBudgetCycle(CreateBudgetCycleRequest request)
+        {
+            var response = await _http.PostAsJsonAsync("/api/budget-cycles", request);
+            response.EnsureSuccessStatusCode();
+
+            var created = await response.Content.ReadFromJsonAsync<BudgetCycleCreatedDto>();
+            return created!.Id;
         }
 
         public async Task<DailyBudgetSummaryDto> GetDailySummary(Guid cycleId)
@@ -61,6 +79,24 @@ namespace BudgetControl.Web.Services
             }
         }
 
+        public async Task<IReadOnlyCollection<FundingSourceVm>> GetAllFundingSources()
+        {
+            return await _http.GetFromJsonAsync<IReadOnlyCollection<FundingSourceVm>>(
+                "api/funding-sources")
+                ?? Array.Empty<FundingSourceVm>();
+        }
+
+        public async Task<Guid> CreateFundingSource(string description)
+        {
+            var response = await _http.PostAsJsonAsync(
+                "api/funding-sources",
+                new { Name = description });
+
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<FundingSourceCreatedDto>();
+            return result!.Id;
+        }
     }
 
 }

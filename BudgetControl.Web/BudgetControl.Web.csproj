@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
+    <ProjectReference Include="..\BudgetControl.Api\BudgetControl.Api.csproj" />
     <ProjectReference Include="..\BudgetControl.Application\BudgetControl.Application.csproj" />
     <ProjectReference Include="..\BudgetControl.Domain\BudgetControl.Domain.csproj" />
   </ItemGroup>

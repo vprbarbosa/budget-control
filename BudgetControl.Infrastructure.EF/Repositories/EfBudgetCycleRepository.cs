@@ -39,5 +39,12 @@ namespace BudgetControl.Infrastructure.EF.Repositories
 
             await _db.SaveChangesAsync();
         }
+
+        public async Task<IReadOnlyCollection<BudgetCycle>> GetAllAsync()
+        {
+            return await _db.BudgetCycles
+                .Include(x => x.Source)
+                .ToListAsync();
+        }
     }
 }

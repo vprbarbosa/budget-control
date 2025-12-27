@@ -9,5 +9,7 @@ namespace BudgetControl.Application.Abstractions.Persistence
         Task<BudgetCycle?> GetByIdAsync(Guid id);
 
         Task SaveAsync(BudgetCycle cycle);
+
+        Task<IReadOnlyCollection<BudgetCycle>> GetAllAsync();
     }
 }

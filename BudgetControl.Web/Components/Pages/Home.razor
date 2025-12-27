@@ -2,208 +2,200 @@
 @rendermode InteractiveServer
 @inject BudgetControl.Web.Services.BudgetApiClient Api
 
-@if (_summary is null)
+<h2>Controle de despesas</h2>
+
+<button @onclick="OpenNewCycleModal">
+    + Novo acompanhamento
+</button>
+
+<!-- LISTAGEM DOS ACOMPANHAMENTOS -->
+@if (_cycles.Any())
 {
-    <p>Carregando...</p>
+    @foreach (var cycle in _cycles)
+    {
+        <details @ontoggle="() => Toggle(cycle.Id)">
+            <summary>@cycle.FundingSourceName</summary>
+
+            @if (_expandedCycleId == cycle.Id)
+            {
+                <CycleDetails CycleId="@cycle.Id" />
+            }
+        </details>
+    }
+
 }
 else
 {
-    <h3>@_summary.FundingSourceName</h3>
+    <p>Nenhum acompanhamento cadastrado.</p>
+}
 
-    <div style="font-size: 1.5rem;">
-        <p><strong>Meta diária:</strong> @_summary.DailyCapacity</p>
-        <p><strong>Total restante:</strong> @_summary.RemainingCapacity</p>
-        <p><strong>Dias restantes:</strong> @_summary.RemainingDays</p>
-    </div>
+<!-- MODAL NOVO ACOMPANHAMENTO -->
+@if (_showNewCycleModal)
+{
+    <div style="position:fixed; inset:0; background:rgba(0,0,0,0.4);
+                display:flex; align-items:center; justify-content:center;">
+        <div style="background:white; padding:20px; width:400px; border-radius:6px;">
 
-    <table style="width:100%; margin-top:20px; border-collapse: collapse;">
-        <thead>
-            <tr>
-                <th style="text-align:left;">Data</th>
-                <th style="text-align:left;">Dia</th>
-                <th style="text-align:right;">Gasto</th>
-                <th style="text-align:center;">Fechado</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var day in _days)
-            {
-                <tr style="cursor:pointer" @onclick="async () => await OpenDay(day.Date)">
-                    <td>@day.Date.ToString("dd/MM")</td>
-                    <td>@day.Date.DayOfWeek</td>
-                    <td style="text-align:right;">
-                        @day.TotalSpent.ToString("C")
-                    </td>
-                    <td style="text-align:center;">
-                        @(day.IsClosed ? "✔" : "")
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+            <h3>Novo acompanhamento</h3>
 
-    @if (_showDayModal)
-    {
-        <div style="
-            position:fixed;
-            top:0;
-            left:0;
-            right:0;
-            bottom:0;
-            background:rgba(0,0,0,0.4);">
-
-            <div style="
-                background:white;
-                width:420px;
-                margin:80px auto;
-                padding:20px;
-                border-radius:6px;">
-
-                <h3>@_selectedDate.ToString("dd/MM/yyyy")</h3>
-
-                <hr />
-
-                <!-- Lista de gastos -->
-                @if (_expenses.Any())
+            <label>Fonte financeira</label>
+            <select value="@_selectedFundingSourceValue"
+                    @onchange="OnFundingSourceChanged"
+                    style="width:100%; margin-bottom:10px;">
+                <option value="">Selecione</option>
+                @foreach (var fs in _fundingSources)
                 {
-                    <ul>
-                        @foreach (var e in _expenses)
-                        {
-                            <li>
-                                <strong>@e.Amount.ToString("C")</strong>
-                                — @e.Description
-                            </li>
-                        }
-                    </ul>
+                    <option value="@fs.Id">@fs.Name</option>
                 }
-                else
-                {
-                    <p>Nenhum gasto neste dia.</p>
-                }
+                <option value="NEW">+ Novo</option>
+            </select>
 
-                <hr />
+            <label>Total disponível</label>
+            <input type="number"
+                   step="0.01"
+                   @bind="_newCycleTotal"
+                   style="width:100%; margin-bottom:10px;" />
 
-                <!-- Formulário de novo gasto -->
-                <h4>Novo gasto</h4>
+            <label>Duração (dias)</label>
+            <input type="number"
+                   @bind="_newCycleDays"
+                   style="width:100%; margin-bottom:10px;" />
 
-                <div style="display:flex; flex-direction:column; gap:8px;">
-                    
-                    <input type="number" @bind="_newExpenseAmount" />
-                    <input type="text" @bind="_newExpenseDescription" />
-
-                    <button @onclick="AddExpense">
-                        Adicionar
-                    </button>
-                </div>
-
-                <hr />
-
-                <div style="display:flex; justify-content:space-between;">
-                    <button @onclick="CloseModal">Fechar</button>
-                    
-                    <button style="background:#eee;" @onclick="CloseDay">
-                        Fechar dia
-                    </button>
-                </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button @onclick="CloseNewCycleModal">Cancelar</button>
+                <button @onclick="CreateCycle">Salvar</button>
             </div>
         </div>
-        
-    }
+    </div>
+}
 
+<!-- MODAL NOVA FONTE FINANCEIRA -->
+@if (_showNewFundingModal)
+{
+    <div style="position:fixed; inset:0; background:rgba(0,0,0,0.4);
+                display:flex; align-items:center; justify-content:center;">
+        <div style="background:white; padding:20px; width:400px; border-radius:6px;">
 
+            <h3>Nova fonte financeira</h3>
+
+            <input placeholder="Descrição"
+                   @bind="_newFundingDescription"
+                   style="width:100%; margin-bottom:10px;" />
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button @onclick="CloseFundingModal">Cancelar</button>
+                <button @onclick="SaveNewFunding">Salvar</button>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
-    private DailyBudgetSummaryDto? _summary;
-    private decimal _newExpenseAmount;
-    private string _newExpenseDescription = string.Empty;
-    private bool _showDayModal;
-    private DateOnly _selectedDate;
+    private Guid? _expandedCycleId;
+    private IReadOnlyCollection<BudgetCycleListItemDto> _cycles = Array.Empty<BudgetCycleListItemDto>();
+
+    private bool _showNewCycleModal;
+    private bool _showNewFundingModal;
+
+    private string _selectedFundingSourceValue = "";
+    private FundingSourceVm? _selectedFundingSource;
+
+    private decimal _newCycleTotal;
+    private int _newCycleDays = 30;
+
+    private List<FundingSourceVm> _fundingSources = new();
+
+    private string _newFundingDescription = "";
     
-    private IReadOnlyCollection<DayExpenseDto> _expenses = Array.Empty<DayExpenseDto>();
-    private IReadOnlyCollection<BudgetCycleDayDto> _days = Array.Empty<BudgetCycleDayDto>();
+    private void Toggle(Guid cycleId)
+    {
+        _expandedCycleId =
+            _expandedCycleId == cycleId ? null : cycleId;
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        var cycleId = Guid.Parse("7c098c29-cde1-4723-98e7-a240eae69641");
-
-        _summary = await Api.GetDailySummary(cycleId);
-        _days = await Api.GetDays(cycleId);
+        await LoadFundingSources();
+        await LoadCycles();
     }
 
-    private async Task OpenDay(DateOnly date)
+    private async Task LoadFundingSources()
     {
-        _selectedDate = date;
-        _expenses = await Api.GetExpenses(_summary.BudgetCycleId, date);
-        _showDayModal = true;
+        _fundingSources = (await Api.GetAllFundingSources()).ToList();
     }
 
-
-    private void CloseModal()
+    private async Task LoadCycles()
     {
-        _showDayModal = false;
-        _expenses = Array.Empty<DayExpenseDto>();
+        _cycles = await Api.GetAllCycles();
     }
 
-    private void AddExpenseLocal()
+    private void OpenNewCycleModal()
+        => _showNewCycleModal = true;
+
+    private void CloseNewCycleModal()
     {
-        if (_newExpenseAmount <= 0)
+        _showNewCycleModal = false;
+        _selectedFundingSource = null;
+        _selectedFundingSourceValue = "";
+        _newCycleTotal = 0;
+        _newCycleDays = 30;
+    }
+
+    private void OnFundingSourceChanged(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString() ?? "";
+        _selectedFundingSourceValue = value;
+
+        if (value == "NEW")
+        {
+            _showNewFundingModal = true;
+            return;
+        }
+
+        if (Guid.TryParse(value, out var id))
+            _selectedFundingSource = _fundingSources.First(x => x.Id == id);
+    }
+
+    private async Task SaveNewFunding()
+    {
+        if (string.IsNullOrWhiteSpace(_newFundingDescription))
             return;
 
-        _expenses = _expenses.Append(new DayExpenseDto
-        {
-            Id = Guid.NewGuid(),
-            Amount = _newExpenseAmount,
-            Description = _newExpenseDescription
-        }).ToList();
+        var id = await Api.CreateFundingSource(_newFundingDescription);
 
-        _newExpenseAmount = 0;
-        _newExpenseDescription = string.Empty;
+        await LoadFundingSources();
+
+        _selectedFundingSource =
+            _fundingSources.First(x => x.Id == id);
+
+        _selectedFundingSourceValue = id.ToString();
+
+        _newFundingDescription = "";
+        _showNewFundingModal = false;
     }
 
-    private async Task AddExpense()
+    private void CloseFundingModal()
     {
-        if (_newExpenseAmount <= 0)
+        _showNewFundingModal = false;
+        _newFundingDescription = "";
+        _selectedFundingSourceValue = "";
+    }
+
+    private async Task CreateCycle()
+    {
+        if (_selectedFundingSource is null)
             return;
 
-        await Api.RegisterExpense(new RegisterPartialExpenseInput
+        var request = new CreateBudgetCycleRequest
         {
-            BudgetCycleId = _summary!.BudgetCycleId,
-            Amount = _newExpenseAmount,
-            Description = _newExpenseDescription
-        });
+            FundingSourceId = _selectedFundingSource.Id,
+            StartDate = DateOnly.FromDateTime(DateTime.Today),
+            EstimatedDurationInDays = _newCycleDays,
+            TotalCapacity = _newCycleTotal
+        };
 
-        // Recarrega tudo
-        _expenses = await Api.GetExpenses(_summary.BudgetCycleId, _selectedDate);
-        _summary = await Api.GetDailySummary(_summary.BudgetCycleId);
-        _days = await Api.GetDays(_summary.BudgetCycleId);
-
-        _newExpenseAmount = 0;
-        _newExpenseDescription = string.Empty;
-    }
-
-    private async Task CloseDay()
-    {
-        await Api.CloseCurrentDay(_summary.BudgetCycleId);
-
-        // Recarrega tudo
-        _summary = await Api.GetDailySummary(_summary.BudgetCycleId);
-        _days = await Api.GetDays(_summary.BudgetCycleId);
-
-        // Atualiza o dia selecionado:
-        // se ainda existir um dia aberto, mostra o próximo
-        var nextOpenDay = _days.FirstOrDefault(d => !d.IsClosed);
-
-        if (nextOpenDay is not null)
-        {
-            _selectedDate = nextOpenDay.Date;
-            _expenses = await Api.GetExpenses(_summary.BudgetCycleId, _selectedDate);
-        }
-        else
-        {
-            // ciclo encerrado
-            _showDayModal = false;
-            _expenses = Array.Empty<DayExpenseDto>();
-        }
+        await Api.CreateBudgetCycle(request);
+        CloseNewCycleModal();
+        await LoadCycles();
     }
 }
