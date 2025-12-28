@@ -97,6 +97,16 @@ namespace BudgetControl.Web.Services
             var result = await response.Content.ReadFromJsonAsync<FundingSourceCreatedDto>();
             return result!.Id;
         }
+
+        public async Task AdjustBudgetCyclePeriod(Guid cycleId, DateOnly endDate)
+        {
+            var response = await _http.PutAsJsonAsync(
+                $"api/budget-cycles/{cycleId}/period",
+                new { EndDate = endDate });
+
+            response.EnsureSuccessStatusCode();
+        }
+
     }
 
 }

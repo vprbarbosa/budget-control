@@ -13,6 +13,8 @@ namespace BudgetControl.Domain.Aggregates
 
         private readonly List<DayAllocation> _days = new();
         public IReadOnlyCollection<DayAllocation> Days => _days;
+        public DateOnly? EndDate { get; private set; }
+
 
         private BudgetCycle(
             FundingSource source,
@@ -51,24 +53,51 @@ namespace BudgetControl.Domain.Aggregates
             }
         }
 
+        public void EnsureDaysUpTo(DateOnly endDate)
+        {
+            if (_days.Count == 0)
+                throw new InvalidOperationException("Cycle has no initialized days.");
+
+            var lastExistingDate = _days.Max(d => d.Date);
+
+            if (endDate <= lastExistingDate)
+                return;
+
+            var daysToAdd =
+                endDate.DayNumber - lastExistingDate.DayNumber;
+
+            for (int i = 1; i <= daysToAdd; i++)
+            {
+                _days.Add(new DayAllocation(
+                    lastExistingDate.AddDays(i)));
+            }
+        }
+
+
         // ===== Queries =====
 
         public Money TotalSpent =>
-            _days.Aggregate(Money.Zero, (acc, d) => acc.Add(d.TotalSpent));
+            ActiveDays.Aggregate(Money.Zero, (acc, d) => acc.Add(d.TotalSpent));
 
         public Money RemainingCapacity =>
             TotalCapacity.Subtract(TotalSpent);
 
         public int RemainingDays =>
-            _days.Count(d => !d.IsClosed);
+            ActiveDays.Count(d => !d.IsClosed);
 
         public Money DailyCapacity =>
             RemainingDays == 0
                 ? Money.Zero
                 : new Money(RemainingCapacity.Amount / RemainingDays);
 
+        private IEnumerable<DayAllocation> ActiveDays => 
+            _days.Where(d =>
+                d.Date >= Period.StartDate &&
+                (EndDate == null || d.Date <= EndDate.Value));
+
+
         private DayAllocation? CurrentDay =>
-            _days
+            ActiveDays
                 .OrderBy(d => d.Date)
                 .FirstOrDefault(d => !d.IsClosed);
 
@@ -116,6 +145,27 @@ namespace BudgetControl.Domain.Aggregates
         {
             Period = new CyclePeriod(startDate, estimatedDurationInDays);
             InitializeDays();
+        }
+
+        public void DefineEndDate(DateOnly endDate)
+        {
+            if (endDate < Period.StartDate)
+                throw new InvalidOperationException("Data final não pode ser anterior à data inicial.");
+
+            // validação contra dias fechados
+            var lastClosedDay = _days
+                .Where(d => d.IsClosed)
+                .OrderByDescending(d => d.Date)
+                .FirstOrDefault();
+
+            if (lastClosedDay is not null && endDate < lastClosedDay.Date)
+                throw new InvalidOperationException(
+                    "Data final não pode ser anterior ao último dia já fechado.");
+
+            EndDate = endDate;
+
+            // 🔥 AQUI está o ponto que faltava
+            EnsureDaysUpTo(endDate);
         }
 
         private BudgetCycle() : base(null)

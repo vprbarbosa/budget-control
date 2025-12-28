@@ -21,6 +21,8 @@ namespace BudgetControl.Infrastructure.EF.Persistence.Configurations
                 .HasForeignKey("FundingSourceId")
                 .IsRequired();
 
+            builder.Property(x => x.EndDate);
+
             builder.OwnsOne(x => x.Period, period =>
             {
                 period.Property(p => p.StartDate)

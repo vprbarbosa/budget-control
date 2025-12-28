@@ -1,4 +1,5 @@
-﻿@inject BudgetControl.Web.Services.BudgetApiClient Api
+﻿@using System.Globalization
+@inject BudgetControl.Web.Services.BudgetApiClient Api
 
 @if (_summary is null)
 {
@@ -6,133 +7,275 @@
 }
 else
 {
-    <div style="margin-top:10px;">
-        <p><strong>Meta diária:</strong> @_summary.DailyCapacity</p>
-        <p><strong>Total restante:</strong> @_summary.RemainingCapacity</p>
-        <p><strong>Dias restantes:</strong> @_summary.RemainingDays</p>
+    <div class="cycle-summary-cards">
+        <div class="summary-card">
+            <span>Meta diária</span>
+            <strong>@_summary.DailyCapacity.ToString("C2", Br)</strong>
+        </div>
+        <div class="summary-card">
+            <span>Total restante</span>
+            <strong>@_summary.RemainingCapacity.ToString("C2", Br)</strong>
+        </div>
+        <div class="summary-card">
+            <span>Dias restantes</span>
+            <strong>@_summary.RemainingDays</strong>
+        </div>
     </div>
 
-    <table style="width:100%; margin-top:15px; border-collapse:collapse;">
-        <thead>
-            <tr>
-                <th>Data</th>
-                <th>Dia</th>
-                <th style="text-align:right;">Gasto</th>
-                <th style="text-align:center;">Fechado</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var day in _days)
-            {
-                <tr style="cursor:pointer"
-                    @onclick="() => OpenDay(day.Date)">
-                    <td>@day.Date.ToString("dd/MM")</td>
-                    <td>@day.Date.DayOfWeek</td>
-                    <td style="text-align:right;">@day.TotalSpent.ToString("C")</td>
-                    <td style="text-align:center;">@(day.IsClosed ? "✔" : "")</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <button class="btn btn-compact"
+            @onclick="OpenAdjustPeriodModal">
+        🗓 Ajustar período
+    </button>
 
-    @if (_showDayModal)
-    {
-        <div style="
-            position:fixed;
-            top:0;
-            left:0;
-            right:0;
-            bottom:0;
-            background:rgba(0,0,0,0.4);">
-
-            <div style="
-                background:white;
-                width:420px;
-                margin:80px auto;
-                padding:20px;
-                border-radius:6px;">
-
-                <h3>@_selectedDate.ToString("dd/MM/yyyy")</h3>
-
-                <hr />
-
-                <!-- Lista de gastos -->
-                @if (_expenses.Any())
-                {
-                    <ul>
-                        @foreach (var e in _expenses)
-                        {
-                            <li>
-                                <strong>@e.Amount.ToString("C")</strong>
-                                — @e.Description
-                            </li>
-                        }
-                    </ul>
-                }
-                else
-                {
-                    <p>Nenhum gasto neste dia.</p>
-                }
-
-                <hr />
-
-                <!-- Formulário de novo gasto -->
-                <h4 style="margin:10px 0; color:#111;">Novo gasto</h4>
-
-                <div style="display:flex; flex-direction:column; gap:8px;">
-                    <label style="display:block; font-weight:600; color:#111;">Valor</label>
-                    <input type="number" step="0.01" @bind="_newExpenseAmount" style="width:100%;" />
-
-                    <label style="display:block; font-weight:600; color:#111;">Descrição</label>
-                    <input type="text" @bind="_newExpenseDescription" style="width:100%;" />
-
-                    <button style="margin-top:6px;" @onclick="AddExpense">Adicionar</button>
+    <div class="card-view">
+        @foreach (var day in _days)
+        {
+            <div class="day-card">
+                <div class="day-header">
+                    <strong>@day.Date.ToString("dd/MM")</strong>
+                    <span>@day.Date.DayOfWeek</span>
                 </div>
-
-                <hr />
-
-                <div style="display:flex; justify-content:space-between;">
-                    <button @onclick="CloseModal">Fechar</button>
-                    
-                    <button style="background:#eee;" @onclick="CloseDay">
-                        Fechar dia
-                    </button>
+                <div class="day-body">
+                    <span>@day.TotalSpent.ToString("C2", Br)</span>
+                    @if (day.IsClosed)
+                    {
+                        <span class="closed">✔</span>
+                    }
                 </div>
             </div>
-        </div>
-    }
+        }
+    </div>
+
+    <div class="table-view">
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Dia</th>
+                    <th style="text-align:right;">Gasto</th>
+                    <th style="text-align:center;">Ações</th>
+                    <th style="text-align:center;">Fechado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var day in _days)
+                {
+                    <tr>
+                        <td>@day.Date.ToString("dd/MM")</td>
+                        <td>@day.Date.DayOfWeek</td>
+                        <td style="text-align:right;">
+                            @day.TotalSpent.ToString("C2", Br)
+                        </td>
+                        <td class="actions-cell">
+                            <button class="btn-action"
+                                    title="Ver gastos"
+                                    @onclick="() => OpenViewExpenses(day.Date)">
+                                📋
+                            </button>
+
+                            <button class="btn-action"
+                                    title="Adicionar gasto"
+                                    disabled="@day.IsClosed"
+                                    @onclick="() => OpenAddExpense(day.Date)">
+                                ➕
+                            </button>
+
+                            <button class="btn-action danger"
+                                    title="Fechar dia"
+                                    disabled="@day.IsClosed"
+                                    @onclick="() => OpenCloseDayConfirm(day.Date)">
+                                ✔
+                            </button>
+                        </td>
+                        <td>@(day.IsClosed ? "✔" : "")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (_showViewExpensesModal)
+        {
+            <div class="budget-modal-backdrop">
+                <div class="budget-modal">
+
+                    <h3>Gastos — @_selectedDate.ToString("dd/MM/yyyy")</h3>
+
+                    <hr />
+
+                    @if (_expenses.Any())
+                    {
+                        <div class="expense-list">
+                            @foreach (var e in _expenses)
+                            {
+                                <div class="expense-item">
+                                    <span class="expense-amount">
+                                        @e.Amount.ToString("C2", Br)
+                                    </span>
+
+                                    <span class="expense-description">
+                                        @e.Description
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p>Nenhum gasto neste dia.</p>
+                    }
+
+                    <div class="modal-actions">
+                        <button class="btn btn-primary"
+                                @onclick="() => _showViewExpensesModal = false">
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (_showAddExpenseModal)
+        {
+            <div class="budget-modal-backdrop">
+                <div class="budget-modal">
+
+                    <h3>Novo gasto — @_selectedDate.ToString("dd/MM/yyyy")</h3>
+
+                    <div class="form-group">
+                        <label>Valor</label>
+                        <input type="number"
+                               step="0.01"
+                               @bind="_newExpenseAmount" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descrição</label>
+                        <input @bind="_newExpenseDescription" />
+                    </div>
+
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary"
+                                @onclick="() => _showAddExpenseModal = false">
+                            Cancelar
+                        </button>
+
+                        <button class="btn btn-primary"
+                                @onclick="AddExpense">
+                            Adicionar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (_showCloseDayConfirm)
+        {
+            <div class="budget-modal-backdrop">
+                <div class="budget-modal">
+
+                    <h3>Confirmação</h3>
+
+                    <p>
+                        Confirma a finalização de despesas para este dia?
+                    </p>
+
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary"
+                                @onclick="() => _showCloseDayConfirm = false">
+                            Cancelar
+                        </button>
+
+                        <button class="btn btn-primary"
+                                @onclick="ConfirmCloseDay">
+                            Confirmar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (_showAdjustPeriodModal)
+        {
+            <div class="budget-modal-backdrop">
+                <div class="budget-modal">
+
+                    <h3>Ajustar período do ciclo</h3>
+
+                    <div class="form-group">
+                        <label>Nova data final</label>
+                        <input type="date"
+                               value="@_newEndDate.ToString("yyyy-MM-dd")"
+                               @onchange="OnEndDateChanged" />
+                    </div>
+
+                    <div class="modal-actions">
+                        <button class="btn btn-secondary"
+                                @onclick="CloseAdjustPeriodModal">
+                            Cancelar
+                        </button>
+
+                        <button class="btn btn-primary"
+                                @onclick="ConfirmAdjustPeriod">
+                            Confirmar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
+
+    </div>
 }
 
 @code {
+    private static readonly CultureInfo Br = new("pt-BR");
+
+    private DateOnly _selectedDate;
+
+    private bool _showViewExpensesModal;
+    private bool _showAddExpenseModal;
+    private bool _showCloseDayConfirm;
+
+    private IReadOnlyCollection<DayExpenseDto> _expenses = Array.Empty<DayExpenseDto>();
+
+    private decimal _newExpenseAmount;
+    private string _newExpenseDescription = "";
+    
     [Parameter] public Guid CycleId { get; set; }
+    [Parameter] public EventCallback<string> OnToastRequested { get; set; }
 
     private DailyBudgetSummaryDto? _summary;
     private IReadOnlyCollection<BudgetCycleDayDto> _days = Array.Empty<BudgetCycleDayDto>();
-    private IReadOnlyCollection<DayExpenseDto> _expenses = Array.Empty<DayExpenseDto>();
 
-    private bool _showDayModal;
-    private DateOnly _selectedDate;
-    private decimal _newExpenseAmount;
-    private string _newExpenseDescription = "";
+    private bool _showAdjustPeriodModal;
+    private DateOnly _newEndDate;
 
     protected override async Task OnParametersSetAsync()
     {
-        _summary = await Api.GetDailySummary(CycleId);
-        _days = await Api.GetDays(CycleId);
+        await RefreshCycle();
     }
 
-    private async Task OpenDay(DateOnly date)
+    private async Task OpenViewExpenses(DateOnly date)
     {
         _selectedDate = date;
         _expenses = await Api.GetExpenses(CycleId, date);
-        _showDayModal = true;
+        _showViewExpensesModal = true;
     }
 
-    private void CloseModal()
+    private void OpenAddExpense(DateOnly date)
     {
-        _showDayModal = false;
-        _expenses = Array.Empty<DayExpenseDto>();
+        _selectedDate = date;
+        _newExpenseAmount = 0;
+        _newExpenseDescription = "";
+        _showAddExpenseModal = true;
     }
+
+    private void OpenCloseDayConfirm(DateOnly date)
+    {
+        _selectedDate = date;
+        _showCloseDayConfirm = true;
+    }
+
 
     private async Task AddExpense()
     {
@@ -147,29 +290,60 @@ else
         });
 
         _expenses = await Api.GetExpenses(CycleId, _selectedDate);
-        _summary = await Api.GetDailySummary(CycleId);
-        _days = await Api.GetDays(CycleId);
+        
+        await RefreshCycle();
 
         _newExpenseAmount = 0;
         _newExpenseDescription = "";
+
+        await OnToastRequested.InvokeAsync("Despesa registrada com sucesso");
     }
 
-    private async Task CloseDay()
+    private async Task ConfirmCloseDay()
     {
         await Api.CloseCurrentDay(CycleId);
 
+        await RefreshCycle();
+
+        _showCloseDayConfirm = false;
+
+        await OnToastRequested.InvokeAsync("Dia finalizado com sucesso");
+    }
+
+    private async Task RefreshCycle()
+    {
         _summary = await Api.GetDailySummary(CycleId);
         _days = await Api.GetDays(CycleId);
-
-        var next = _days.FirstOrDefault(d => !d.IsClosed);
-        if (next is not null)
-        {
-            _selectedDate = next.Date;
-            _expenses = await Api.GetExpenses(CycleId, _selectedDate);
-        }
-        else
-        {
-            CloseModal();
-        }
     }
+
+    private void OpenAdjustPeriodModal()
+    {
+        // Data sugerida:
+        // última data do ciclo OU hoje, o que for maior
+        var lastDay = _days.Max(d => d.Date);
+        _newEndDate = lastDay;
+
+        _showAdjustPeriodModal = true;
+    }
+
+    private void OnEndDateChanged(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParse(e.Value?.ToString(), out var date))
+            _newEndDate = date;
+    }
+
+    private void CloseAdjustPeriodModal()
+    {
+        _showAdjustPeriodModal = false;
+    }
+
+    private async Task ConfirmAdjustPeriod()
+    {
+        await Api.AdjustBudgetCyclePeriod(CycleId, _newEndDate);
+
+        await RefreshCycle();
+
+        _showAdjustPeriodModal = false;
+    }
+
 }

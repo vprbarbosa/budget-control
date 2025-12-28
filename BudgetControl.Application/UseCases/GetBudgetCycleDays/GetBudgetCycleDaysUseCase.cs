@@ -16,13 +16,17 @@ namespace BudgetControl.Application.UseCases.GetBudgetCycleDays
             _repository = repository;
         }
 
-        public async Task<IReadOnlyCollection<BudgetCycleDayDto>> ExecuteAsync(
-            Guid cycleId)
+        public async Task<IReadOnlyCollection<BudgetCycleDayDto>> ExecuteAsync(Guid cycleId)
         {
             var cycle = await _repository.GetByIdAsync(cycleId)
                 ?? throw new InvalidOperationException("Budget cycle not found.");
 
-            return cycle.Days
+            var activeDays = cycle.Days
+                .Where(d =>
+                    d.Date >= cycle.Period.StartDate &&
+                    (cycle.EndDate == null || d.Date <= cycle.EndDate.Value));
+
+            return activeDays
                 .OrderBy(d => d.Date)
                 .Select(d => new BudgetCycleDayDto
                 {

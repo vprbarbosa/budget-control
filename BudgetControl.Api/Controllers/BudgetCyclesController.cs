@@ -1,5 +1,6 @@
 ﻿using BudgetControl.Api.DTOs;
 using BudgetControl.Application.DTOs;
+using BudgetControl.Application.UseCases.AdjustBudgetCyclePeriod;
 using BudgetControl.Application.UseCases.CreateBudgetCycle;
 using BudgetControl.Application.UseCases.GetAllBudgetCycles;
 using BudgetControl.Application.UseCases.GetBudgetCycleDays;
@@ -82,6 +83,19 @@ namespace BudgetControl.Api.Controllers
             var result = await useCase.ExecuteAsync();
 
             return Ok(result);
+        }
+
+        [HttpPut("{cycleId}/period")]
+        public async Task<IActionResult> AdjustPeriod(Guid cycleId, [FromBody] AdjustBudgetCyclePeriodRequest request, [FromServices] AdjustBudgetCyclePeriodUseCase useCase)
+        {
+            await useCase.ExecuteAsync(
+                new AdjustBudgetCyclePeriodInput
+                {
+                    CycleId = cycleId,
+                    EndDate = request.EndDate
+                });
+
+            return NoContent();
         }
 
     }
