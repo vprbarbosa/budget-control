@@ -15,54 +15,84 @@ namespace BudgetControl.Api.Controllers
     {
         private readonly CreateFundingSourceUseCase _createUseCase;
         private readonly IFundingSourceRepository _repository;
+        private readonly ILogger<FundingSourcesController> _logger;
 
         public FundingSourcesController(
             CreateFundingSourceUseCase createUseCase,
-            IFundingSourceRepository repository)
+            IFundingSourceRepository repository,
+            ILogger<FundingSourcesController> logger)
         {
             _createUseCase = createUseCase;
             _repository = repository;
+            _logger = logger;
         }
 
-        /// <summary>
-        /// Cria uma nova fonte de recursos (cartão, vale, reserva, etc).
-        /// </summary>
         [HttpPost]
         [ProducesResponseType(typeof(FundingSourceDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Create(
             [FromBody] CreateFundingSourceInputDto input)
         {
-            var result = await _createUseCase.ExecuteAsync(input.Name);
+            try
+            {
+                var result = await _createUseCase.ExecuteAsync(input.Name);
 
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = result.Id },
-                result);
+                return CreatedAtAction(
+                    nameof(GetById),
+                    new { id = result.Id },
+                    result);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Erro de validação ao criar FundingSource");
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro inesperado ao criar FundingSource");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
-        /// <summary>
-        /// Obtém uma fonte de recursos pelo ID.
-        /// </summary>
         [HttpGet("{id:guid}")]
         [ProducesResponseType(typeof(FundingSourceDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var source = await _repository.GetByIdAsync(id);
+            try
+            {
+                var source = await _repository.GetByIdAsync(id);
 
-            if (source is null)
-                return NotFound();
+                if (source is null)
+                    return NotFound();
 
-            return Ok(FundingSourceDto.From(source));
+                return Ok(FundingSourceDto.From(source));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar FundingSource {Id}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromServices] GetAllFundingSourcesUseCase useCase)
+        [ProducesResponseType(typeof(IEnumerable<FundingSourceDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAll(
+            [FromServices] GetAllFundingSourcesUseCase useCase)
         {
-            var result = await useCase.ExecuteAsync();
-            
-            return Ok(result);
+            try
+            {
+                var result = await useCase.ExecuteAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao listar FundingSources");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
     }
 }
