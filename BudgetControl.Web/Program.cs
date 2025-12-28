@@ -1,12 +1,14 @@
-using BudgetControl.Web.Components;
 using BudgetControl.Web.Services;
+using BudgetControl.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddRazorComponents()
+// Razor Components (Blazor Server)
+builder.Services
+    .AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// HttpClient para API
 builder.Services.AddHttpClient("BudgetApi", client =>
 {
     client.BaseAddress = new Uri("http://localhost:5000/");
@@ -16,20 +18,19 @@ builder.Services.AddScoped<BudgetApiClient>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Pipeline
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-app.UseHttpsRedirection();
 
+app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseAntiforgery();
 
-app.MapStaticAssets();
+// Blazor Server
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+   .AddInteractiveServerRenderMode();
 
 app.Run();
