@@ -24,7 +24,7 @@ else
 
     <button class="btn btn-compact"
             @onclick="OpenAdjustPeriodModal">
-        🗓 Ajustar período
+        🗓 Ajustar ciclo
     </button>
 
     <div class="card-view">
@@ -194,7 +194,7 @@ else
             </div>
         }
 
-        @if (_showAdjustPeriodModal)
+        @if (_showAdjustCycleModal)
         {
             <div class="budget-modal-backdrop">
                 <div class="budget-modal">
@@ -208,14 +208,22 @@ else
                                @onchange="OnEndDateChanged" />
                     </div>
 
+                     <div class="form-group">
+                        <label>Novo valor total do ciclo (opcional)</label>
+                        <input type="number"
+                               step="0.01"
+                               placeholder="Ex: 3500,00"
+                               @onchange="OnTotalCapacityChanged" />
+                    </div>
+
                     <div class="modal-actions">
                         <button class="btn btn-secondary"
-                                @onclick="CloseAdjustPeriodModal">
+                                @onclick="CloseAdjustCycleModal">
                             Cancelar
                         </button>
 
                         <button class="btn btn-primary"
-                                @onclick="ConfirmAdjustPeriod">
+                                @onclick="ConfirmAdjustCycle">
                             Confirmar
                         </button>
                     </div>
@@ -247,8 +255,9 @@ else
     private DailyBudgetSummaryDto? _summary;
     private IReadOnlyCollection<BudgetCycleDayDto> _days = Array.Empty<BudgetCycleDayDto>();
 
-    private bool _showAdjustPeriodModal;
+    private bool _showAdjustCycleModal;
     private DateOnly _newEndDate;
+    private decimal? _newTotalCapacity;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -318,13 +327,13 @@ else
 
     private void OpenAdjustPeriodModal()
     {
-        // Data sugerida:
-        // última data do ciclo OU hoje, o que for maior
         var lastDay = _days.Max(d => d.Date);
         _newEndDate = lastDay;
+        _newTotalCapacity = null;
 
-        _showAdjustPeriodModal = true;
+        _showAdjustCycleModal = true;
     }
+
 
     private void OnEndDateChanged(ChangeEventArgs e)
     {
@@ -332,18 +341,41 @@ else
             _newEndDate = date;
     }
 
-    private void CloseAdjustPeriodModal()
+    private void CloseAdjustCycleModal()
     {
-        _showAdjustPeriodModal = false;
+        _showAdjustCycleModal = false;
     }
 
-    private async Task ConfirmAdjustPeriod()
+    private void OnTotalCapacityChanged(ChangeEventArgs e)
     {
-        await Api.AdjustBudgetCyclePeriod(CycleId, _newEndDate);
+        if (decimal.TryParse(
+            e.Value?.ToString(),
+            NumberStyles.Any,
+            Br,
+            out var value
+        ))
+            _newTotalCapacity = value;
+        else
+            _newTotalCapacity = null;
+    }
 
+    private async Task ConfirmAdjustCycle()
+    {
+        if (_newEndDate != default)
+        {
+            await Api.AdjustBudgetCyclePeriod(CycleId, _newEndDate);
+        }
+
+        if (_newTotalCapacity.HasValue)
+        {
+            await Api.AdjustCycleCapacity(
+                CycleId,
+                _newTotalCapacity.Value
+            );
+        }
+
+        CloseAdjustCycleModal();
         await RefreshCycle();
-
-        _showAdjustPeriodModal = false;
     }
 
 }

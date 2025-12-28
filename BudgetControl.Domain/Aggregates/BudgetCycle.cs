@@ -73,6 +73,15 @@ namespace BudgetControl.Domain.Aggregates
             }
         }
 
+        public void AdjustTotalCapacity(Money newTotalCapacity)
+        {
+            if (newTotalCapacity.IsLessThan(TotalSpent))
+                throw new InvalidOperationException(
+                    "O orçamento total não pode ser menor que o valor já gasto."
+                );
+
+            TotalCapacity = newTotalCapacity;
+        }
 
         // ===== Queries =====
 
@@ -90,7 +99,7 @@ namespace BudgetControl.Domain.Aggregates
                 ? Money.Zero
                 : new Money(RemainingCapacity.Amount / RemainingDays);
 
-        private IEnumerable<DayAllocation> ActiveDays => 
+        private IEnumerable<DayAllocation> ActiveDays =>
             _days.Where(d =>
                 d.Date >= Period.StartDate &&
                 (EndDate == null || d.Date <= EndDate.Value));
@@ -104,14 +113,14 @@ namespace BudgetControl.Domain.Aggregates
         // ===== Commands =====
 
         public void RegisterExpense(
-            decimal amount,            
+            decimal amount,
             string description = "")
         {
             var day = CurrentDay
                 ?? throw new InvalidOperationException("No open day available in this cycle.");
 
             var expense = PartialExpense.Create(
-                new Money(amount),                
+                new Money(amount),
                 description);
 
             day.AddExpense(expense);

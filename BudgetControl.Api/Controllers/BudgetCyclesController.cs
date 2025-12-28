@@ -1,5 +1,6 @@
 ﻿using BudgetControl.Api.DTOs;
 using BudgetControl.Application.DTOs;
+using BudgetControl.Application.UseCases.AdjustBudgetCycleCapacity;
 using BudgetControl.Application.UseCases.AdjustBudgetCyclePeriod;
 using BudgetControl.Application.UseCases.CreateBudgetCycle;
 using BudgetControl.Application.UseCases.GetAllBudgetCycles;
@@ -95,6 +96,13 @@ namespace BudgetControl.Api.Controllers
                     EndDate = request.EndDate
                 });
 
+            return NoContent();
+        }
+
+        [HttpPut("{id:guid}/capacity")]
+        public async Task<IActionResult> AdjustCapacity(Guid id, [FromBody] AdjustCapacityDto dto, [FromServices] AdjustBudgetCycleCapacityUseCase useCase)
+        {
+            await useCase.ExecuteAsync(id, dto.NewAmount);
             return NoContent();
         }
 

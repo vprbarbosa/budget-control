@@ -16,6 +16,14 @@ namespace BudgetControl.Domain.ValueObjects
 
         public static Money Zero => new(0);
 
+        public static Money FromDecimal(decimal amount)
+        {
+            if (amount < 0)
+                throw new InvalidOperationException("Valor monetário não pode ser negativo.");
+
+            return new Money(amount);
+        }
+
         // ⚠️ ESTES DEVEM SER PUBLIC
         public Money Add(Money other) => new(Amount + other.Amount);
 
@@ -26,6 +34,8 @@ namespace BudgetControl.Domain.ValueObjects
 
             return new Money(Amount - other.Amount);
         }
+
+        public bool IsLessThan(Money other) => Amount < other.Amount;
 
         protected override IEnumerable<object?> GetEqualityComponents()
         {

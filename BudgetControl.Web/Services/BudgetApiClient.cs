@@ -107,6 +107,17 @@ namespace BudgetControl.Web.Services
             response.EnsureSuccessStatusCode();
         }
 
+        public async Task AdjustCycleCapacity(Guid cycleId, decimal newAmount)
+        {
+            var response = await _http.PutAsJsonAsync(
+                $"api/budget-cycles/{cycleId}/capacity",
+                new AdjustCapacityDto
+                {
+                    NewAmount = newAmount
+                });
+
+            response.EnsureSuccessStatusCode();
+        }
     }
 
 }
