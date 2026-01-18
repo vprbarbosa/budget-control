@@ -118,6 +118,13 @@ namespace BudgetControl.Web.Services
 
             response.EnsureSuccessStatusCode();
         }
+
+        public async Task<BudgetCycleDetailsDto> GetCycleDetails(Guid cycleId)
+        {
+            return await _http.GetFromJsonAsync<BudgetCycleDetailsDto>(
+                $"api/budget-cycles/{cycleId}")
+                ?? throw new InvalidOperationException("Cycle not found.");
+        }
     }
 
 }

@@ -97,7 +97,9 @@ namespace BudgetControl.Domain.Aggregates
         public Money DailyCapacity =>
             RemainingDays == 0
                 ? Money.Zero
-                : new Money(RemainingCapacity.Amount / RemainingDays);
+                : RemainingCapacity.IsLessThan(Money.Zero)
+                    ? Money.Zero
+                    : new Money(RemainingCapacity.Amount / RemainingDays);
 
         private IEnumerable<DayAllocation> ActiveDays =>
             _days.Where(d =>
@@ -119,9 +121,14 @@ namespace BudgetControl.Domain.Aggregates
             var day = CurrentDay
                 ?? throw new InvalidOperationException("No open day available in this cycle.");
 
+            var moneyAmout = new Money(amount);
+
             var expense = PartialExpense.Create(
-                new Money(amount),
+                moneyAmout,
                 description);
+
+            if (TotalSpent.Add(moneyAmout).IsGreaterThan(TotalCapacity))
+                throw new InvalidOperationException("Insufficient funds.");
 
             day.AddExpense(expense);
         }
@@ -145,9 +152,11 @@ namespace BudgetControl.Domain.Aggregates
             day.Close();
         }
 
+        public bool IsOverBudget => TotalSpent.IsGreaterThan(TotalCapacity);
+
         public void AdjustTotalCapacity(decimal newCapacity)
         {
-            TotalCapacity = new Money(newCapacity);
+            AdjustTotalCapacity(new Money(newCapacity));
         }
 
         public void AdjustPeriod(DateOnly startDate, int estimatedDurationInDays)

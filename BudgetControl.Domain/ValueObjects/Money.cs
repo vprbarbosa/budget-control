@@ -8,13 +8,17 @@ namespace BudgetControl.Domain.ValueObjects
 
         internal Money(decimal amount)
         {
-            if (amount < 0)
-                throw new ArgumentOutOfRangeException(nameof(amount));
-
             Amount = amount;
         }
 
         public static Money Zero => new(0);
+
+        public Money Abs()
+        {
+            return Amount < 0
+                ? new Money(-Amount)
+                : this;
+        }
 
         public static Money FromDecimal(decimal amount)
         {
@@ -29,13 +33,12 @@ namespace BudgetControl.Domain.ValueObjects
 
         public Money Subtract(Money other)
         {
-            if (other.Amount > Amount)
-                throw new InvalidOperationException("Insufficient funds.");
-
             return new Money(Amount - other.Amount);
         }
 
         public bool IsLessThan(Money other) => Amount < other.Amount;
+
+        public bool IsGreaterThan(Money other) => Amount > other.Amount;
 
         protected override IEnumerable<object?> GetEqualityComponents()
         {

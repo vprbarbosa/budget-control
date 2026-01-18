@@ -30,11 +30,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // ============================
-// Database (EF + PostgreSQL)
+// Database (EF + SQLite)
 // ============================
 builder.Services.AddDbContext<BudgetControlDbContext>(options =>
 {
-    options.UseNpgsql(
+    options.UseSqlite(
         builder.Configuration.GetConnectionString("DefaultConnection"),
         b => b.MigrationsAssembly("BudgetControl.Migrations"));
 });
@@ -60,6 +60,8 @@ builder.Services.AddScoped<AdjustBudgetCyclePeriodUseCase>();
 builder.Services.AddScoped<AdjustBudgetCycleCapacityUseCase>();
 
 builder.WebHost.UseUrls("http://0.0.0.0:5000");
+
+Console.WriteLine($"ENVIRONMENT = {builder.Environment.EnvironmentName}");
 
 // ============================
 // App

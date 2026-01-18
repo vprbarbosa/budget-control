@@ -8,19 +8,38 @@
 else
 {
     <div class="cycle-summary-cards">
+
+        <div class="summary-card">
+            <span>Total alocado</span>
+            <strong>@_cycle!.TotalCapacity.ToString("C2", Br)</strong>
+        </div>
+
         <div class="summary-card">
             <span>Meta diária</span>
-            <strong>@_summary.DailyCapacity.ToString("C2", Br)</strong>
+            <strong>@_summary!.DailyCapacity.ToString("C2", Br)</strong>
         </div>
+
         <div class="summary-card">
             <span>Total restante</span>
-            <strong>@_summary.RemainingCapacity.ToString("C2", Br)</strong>
+            <strong>@_cycle!.RemainingCapacity.ToString("C2", Br)</strong>
         </div>
+
+        @if (_cycle!.IsOverBudget)
+        {
+            <div class="summary-card danger">
+                <span>Gasto excedido</span>
+                <strong>@_cycle.ExceededAmount.ToString("C2", Br)</strong>
+            </div>
+        }
+
         <div class="summary-card">
             <span>Dias restantes</span>
-            <strong>@_summary.RemainingDays</strong>
+            <strong>@_summary!.RemainingDays</strong>
         </div>
+
     </div>
+
+
 
     <button class="btn btn-compact"
             @onclick="OpenAdjustPeriodModal">
@@ -253,6 +272,7 @@ else
     [Parameter] public EventCallback<string> OnToastRequested { get; set; }
 
     private DailyBudgetSummaryDto? _summary;
+    private BudgetCycleDetailsDto? _cycle;
     private IReadOnlyCollection<BudgetCycleDayDto> _days = Array.Empty<BudgetCycleDayDto>();
 
     private bool _showAdjustCycleModal;
@@ -321,9 +341,11 @@ else
 
     private async Task RefreshCycle()
     {
+        _cycle = await Api.GetCycleDetails(CycleId);
         _summary = await Api.GetDailySummary(CycleId);
         _days = await Api.GetDays(CycleId);
     }
+
 
     private void OpenAdjustPeriodModal()
     {

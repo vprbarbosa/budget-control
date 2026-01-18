@@ -15,6 +15,8 @@ namespace BudgetControl.Application.DTOs
         public decimal TotalCapacity { get; init; }
         public decimal TotalSpent { get; init; }
         public decimal RemainingCapacity { get; init; }
+        public decimal ExceededAmount { get; init; }
+        public bool IsOverBudget { get; init; }
 
         public decimal DailyCapacity { get; init; }
         public int RemainingDays { get; init; }
