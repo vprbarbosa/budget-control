@@ -1,0 +1,22 @@
+name: Deploy Web
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "BudgetControl.Web/**"
+      - "Dockerfile.web"
+      - "fly.web.toml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - run: flyctl deploy -c fly.web.toml --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
