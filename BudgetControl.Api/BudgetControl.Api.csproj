@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BudgetControl.Contracts\BudgetControl.Contracts.csproj" />
     <ProjectReference Include="..\BudgetControl.Infrastructure.EF\BudgetControl.Infrastructure.EF.csproj" />
     <ProjectReference Include="..\BudgetControl.Migrations\BudgetControl.Migrations.csproj" />
   </ItemGroup>
