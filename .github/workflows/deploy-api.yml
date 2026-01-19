@@ -10,6 +10,7 @@ on:
       - "BudgetControl.Infrastructure.EF/**"
       - "Dockerfile"
       - "fly.toml"
+  workflow_dispatch:
 
 jobs:
   deploy:
