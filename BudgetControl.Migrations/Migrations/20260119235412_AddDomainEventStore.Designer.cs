@@ -3,6 +3,7 @@ using System;
 using BudgetControl.Infrastructure.EF.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BudgetControl.Migrations.Migrations
 {
     [DbContext(typeof(BudgetControlDbContext))]
-    partial class BudgetControlDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260119235412_AddDomainEventStore")]
+    partial class AddDomainEventStore
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
