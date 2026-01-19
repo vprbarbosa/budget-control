@@ -11,37 +11,28 @@ using BudgetControl.Application.UseCases.GetBudgetCycleDetails;
 using BudgetControl.Application.UseCases.GetDailyBudgetSummary;
 using BudgetControl.Application.UseCases.GetDayExpenses;
 using BudgetControl.Application.UseCases.RegisterPartialExpense;
-using BudgetControl.Infrastructure.EF;
 using BudgetControl.Infrastructure.EF.Persistence;
 using BudgetControl.Infrastructure.EF.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ============================
-// Controllers / API
-// ============================
+// Controllers
 builder.Services.AddControllers();
 
-// ============================
-// Swagger
-// ============================
+// Swagger (ativo sempre)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// ============================
-// Database (EF + SQLite)
-// ============================
+// Database (SQLite ONLY)
 builder.Services.AddDbContext<BudgetControlDbContext>(options =>
 {
     options.UseSqlite(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        b => b.MigrationsAssembly("BudgetControl.Migrations"));
+        x => x.MigrationsAssembly("BudgetControl.Migrations"));
 });
 
-// ============================
-// Repositories (DI)
-// ============================
+// Repositories
 builder.Services.AddScoped<IBudgetCycleRepository, EfBudgetCycleRepository>();
 builder.Services.AddScoped<IFundingSourceRepository, EfFundingSourceRepository>();
 
@@ -59,25 +50,22 @@ builder.Services.AddScoped<GetAllFundingSourcesUseCase>();
 builder.Services.AddScoped<AdjustBudgetCyclePeriodUseCase>();
 builder.Services.AddScoped<AdjustBudgetCycleCapacityUseCase>();
 
+// Obrigatório em container
 builder.WebHost.UseUrls("http://0.0.0.0:5000");
 
-Console.WriteLine($"ENVIRONMENT = {builder.Environment.EnvironmentName}");
-
-// ============================
-// App
-// ============================
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// Auto-migrate (ok para projeto solo)
+using (var scope = app.Services.CreateScope())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    var db = scope.ServiceProvider.GetRequiredService<BudgetControlDbContext>();
+    db.Database.Migrate();
 }
 
-app.UseHttpsRedirection();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
