@@ -4,6 +4,9 @@ primary_region = "gru"
 [build]
   dockerfile = "Dockerfile.web"
 
+[env]
+ASPNETCORE_ENVIRONMENT = "Production"
+
 [http_service]
   internal_port = 8080
   force_https = true
