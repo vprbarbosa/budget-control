@@ -1,22 +1,31 @@
 @page "/test-expense"
-@inject BudgetControl.Pwa.Infrastructure.Application.RegisterExpenseUseCase UseCase
+@inject BudgetControl.Pwa.Infrastructure.Application.CreateBudgetCycleUseCase CreateCycle
+@inject BudgetControl.Pwa.Infrastructure.Application.RegisterExpenseUseCase RegisterExpense
 
 <h3>Test Register Expense</h3>
 
-<button @onclick="Run">Registrar despesa fake</button>
+<button @onclick="Create">Criar ciclo</button>
+<button @onclick="AddExpense" disabled="@(_cycleId == null)">Registrar despesa</button>
 
-<p>@_status</p>
+<p>CycleId: @_cycleId</p>
 
 @code {
-    private string _status = "Inicial";
+    private Guid? _cycleId;
 
-    private async Task Run()
+    private async Task Create()
     {
-        _status = "Cliquei no botão";
-        Console.WriteLine("Botão clicado");
+        _cycleId = await CreateCycle.ExecuteAsync(
+            "Fonte Teste",
+            DateOnly.FromDateTime(DateTime.Today),
+            30,
+            1000m);
+    }
 
-        await UseCase.ExecuteAsync(50m, "Teste");
-
-        _status = "UseCase executado";
+    private async Task AddExpense()
+    {
+        await RegisterExpense.ExecuteAsync(
+            _cycleId!.Value,
+            50m,
+            "Teste");
     }
 }

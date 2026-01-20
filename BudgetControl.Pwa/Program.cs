@@ -17,5 +17,7 @@ builder.Services.AddSingleton<ISyncClient, FakeSyncClient>();
 builder.Services.AddScoped<BudgetControl.Pwa.Services.TestEventPipeline>();
 builder.Services.AddScoped<BudgetControl.Pwa.Infrastructure.Application.RegisterExpenseUseCase>();
 builder.Services.AddSingleton<IAggregateSnapshotStore<BudgetCycle>, InMemoryAggregateSnapshotStore<BudgetCycle>>();
+builder.Services.AddScoped<BudgetControl.Pwa.Infrastructure.Application.CreateBudgetCycleUseCase>();
+
 
 await builder.Build().RunAsync();

@@ -34,81 +34,54 @@ namespace BudgetControl.Pwa.Infrastructure.Application
         }
 
         public async Task ExecuteAsync(
+    Guid cycleId,
     decimal amount,
     string? description,
     CancellationToken ct = default)
         {
             Console.WriteLine("=== RegisterExpenseUseCase START ===");
+            Console.WriteLine($"[1] Carregando snapshot do ciclo {cycleId}");
 
-            Console.WriteLine($"[1] Tentando carregar snapshot do ciclo {CycleId}");
-            var cycle = await _snapshotStore.LoadAsync(CycleId, ct);
+            var cycle = await _snapshotStore.LoadAsync(cycleId, ct);
 
             if (cycle is null)
-            {
-                Console.WriteLine("[2] Snapshot NÃO encontrado. Criando novo BudgetCycle");
+                throw new InvalidOperationException(
+                    $"Cycle {cycleId} não encontrado.");
 
-                var source = FundingSource.Create("Fonte Fake");
+            Console.WriteLine("[2] Snapshot encontrado");
+            Console.WriteLine($"[2.1] Total gasto atual: {cycle.TotalSpent.Amount}");
 
-                cycle = BudgetCycle.Create(
-                    source: source,
-                    startDate: DateOnly.FromDateTime(DateTime.Today),
-                    estimatedDurationInDays: 30,
-                    totalCapacity: 1000m);
-
-                Console.WriteLine($"[2.1] Novo BudgetCycle criado com Id {cycle.Id}");
-            }
-            else
-            {
-                Console.WriteLine("[2] Snapshot encontrado. Reutilizando BudgetCycle existente");
-                Console.WriteLine($"[2.1] Total gasto atual: {cycle.TotalSpent.Amount}");
-                Console.WriteLine($"[2.2] Capacidade restante: {cycle.RemainingCapacity.Amount}");
-                Console.WriteLine($"[2.3] Dias restantes: {cycle.RemainingDays}");
-            }
-
-            Console.WriteLine($"[3] Registrando despesa. Valor={amount}, Desc='{description}'");
+            Console.WriteLine($"[3] Registrando despesa {amount}");
             cycle.RegisterExpense(amount, description);
 
-            Console.WriteLine($"[3.1] Total gasto após registro: {cycle.TotalSpent.Amount}");
-            Console.WriteLine($"[3.2] Capacidade restante após registro: {cycle.RemainingCapacity.Amount}");
+            Console.WriteLine($"[3.1] Total gasto após: {cycle.TotalSpent.Amount}");
 
             Console.WriteLine("[4] Salvando snapshot atualizado");
-            await _snapshotStore.SaveAsync(CycleId, cycle, ct);
+            await _snapshotStore.SaveAsync(cycleId, cycle, ct);
 
-            Console.WriteLine("[5] Criando evento de sync (Application Event)");
+            Console.WriteLine("[5] Criando evento de sync");
             var evt = new
             {
-                CycleId,
+                CycleId = cycleId,
                 Amount = amount,
                 Description = description,
                 OccurredAt = DateTimeOffset.UtcNow
             };
 
             var envelope = DomainEventAdapter.Adapt(
-                domainEvent: evt,
-                contextId: ContextId,
-                aggregateId: CycleId,
-                deviceId: DeviceId);
+                evt,
+                ContextId,
+                cycleId,
+                DeviceId);
 
-            Console.WriteLine($"[5.1] Evento envelopado. EventId={envelope.EventId}");
-
-            Console.WriteLine("[6] Persistindo evento no LocalEventStore");
             await _eventStore.AppendAsync(new[] { envelope }, ct);
 
             var pending = await _eventStore.GetPendingAsync(ct);
-            Console.WriteLine($"[6.1] Eventos pendentes no store: {pending.Count}");
+            await _syncClient.PushAsync(pending, ct);
 
-            Console.WriteLine("[7] Executando sync (fake)");
-            var result = await _syncClient.PushAsync(pending, ct);
-
-            Console.WriteLine($"[7.1] Sync concluído. Accepted={result.Accepted}, Duplicates={result.Duplicates}");
-
-            Console.WriteLine("[8] Marcando eventos como enviados");
             await _eventStore.MarkAsSentAsync(
                 pending.Select(e => e.EventId).ToArray(),
                 ct);
-
-            var pendingAfter = await _eventStore.GetPendingAsync(ct);
-            Console.WriteLine($"[8.1] Eventos pendentes após limpeza: {pendingAfter.Count}");
 
             Console.WriteLine("=== RegisterExpenseUseCase END ===");
         }
