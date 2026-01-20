@@ -1,0 +1,22 @@
+@page "/test-expense"
+@inject BudgetControl.Pwa.Infrastructure.Application.RegisterExpenseUseCase UseCase
+
+<h3>Test Register Expense</h3>
+
+<button @onclick="Run">Registrar despesa fake</button>
+
+<p>@_status</p>
+
+@code {
+    private string _status = "Inicial";
+
+    private async Task Run()
+    {
+        _status = "Cliquei no botão";
+        Console.WriteLine("Botão clicado");
+
+        await UseCase.ExecuteAsync(50m, "Teste");
+
+        _status = "UseCase executado";
+    }
+}
