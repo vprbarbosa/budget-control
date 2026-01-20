@@ -12,5 +12,6 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 
 builder.Services.AddSingleton<ILocalEventStore, InMemoryLocalEventStore>();
 builder.Services.AddSingleton<ISyncClient, FakeSyncClient>();
+builder.Services.AddScoped<BudgetControl.Pwa.Services.TestEventPipeline>();
 
 await builder.Build().RunAsync();

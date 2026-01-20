@@ -1,0 +1,28 @@
+@page "/debug-sync"
+@inject BudgetControl.Pwa.Services.TestEventPipeline Pipeline
+
+<h3>Debug Sync</h3>
+
+<p>Pendentes: @_pending</p>
+<p>Último Accepted: @_lastAccepted</p>
+
+<input @bind="_message" placeholder="mensagem" />
+<button @onclick="Generate">Gerar evento</button>
+
+@code {
+    private string _message = "hello";
+    private int _pending;
+    private int _lastAccepted;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _pending = await Pipeline.GetPendingCountAsync();
+    }
+
+    private async Task Generate()
+    {
+        var (pendingAfter, accepted) = await Pipeline.RunOnceAsync(_message);
+        _pending = pendingAfter;
+        _lastAccepted = accepted;
+    }
+}
