@@ -2,17 +2,26 @@
 using BudgetControl.Domain.Common;
 using BudgetControl.Domain.Entities;
 using BudgetControl.Domain.ValueObjects;
+using System.Text.Json.Serialization;
 
 namespace BudgetControl.Domain.Aggregates
 {
-    public sealed class BudgetCycle : Entity
+    public sealed class BudgetCycle : Entity, IRehydratableAggregate
     {
+        [JsonInclude]
         public FundingSource Source { get; }
+        
+        [JsonInclude]
         public CyclePeriod Period { get; private set; }
+
+        [JsonInclude]
         public Money TotalCapacity { get; private set; }
 
+        [JsonInclude]
         private readonly List<DayAllocation> _days = new();
         public IReadOnlyCollection<DayAllocation> Days => _days;
+
+        [JsonInclude]
         public DateOnly? EndDate { get; private set; }
 
 
@@ -186,9 +195,21 @@ namespace BudgetControl.Domain.Aggregates
             EnsureDaysUpTo(endDate);
         }
 
+        [JsonConstructor]
         private BudgetCycle() : base(null)
         {
-            // EF Core only
+            
+        }
+
+        void IRehydratableAggregate.AfterRehydration()
+        {
+            if (Period is null)
+                throw new InvalidOperationException("Snapshot inválido: Period não foi reidratado.");
+
+            if (_days.Count == 0)
+                InitializeDays();
+
+            EnsureDaysUpTo(Period.EstimatedEndDate);
         }
     }
 

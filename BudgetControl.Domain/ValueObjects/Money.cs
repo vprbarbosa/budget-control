@@ -1,14 +1,22 @@
 ﻿using BudgetControl.Domain.Common;
+using System.Text.Json.Serialization;
 
 namespace BudgetControl.Domain.ValueObjects
 {
     public sealed class Money : ValueObject
     {
-        public decimal Amount { get; }
+        [JsonInclude]
+        public decimal Amount { get; private set; }
 
         internal Money(decimal amount)
         {
             Amount = amount;
+        }
+
+        [JsonConstructor]
+        private Money()
+        {
+            // Snapshot / EF rehydration only
         }
 
         public static Money Zero => new(0);
@@ -45,4 +53,5 @@ namespace BudgetControl.Domain.ValueObjects
             yield return Amount;
         }
     }
+
 }

@@ -1,11 +1,15 @@
 ﻿using BudgetControl.Domain.Common;
+using System.Text.Json.Serialization;
 
 namespace BudgetControl.Domain.ValueObjects
 {
     public sealed class CyclePeriod : ValueObject
     {
-        public DateOnly StartDate { get; }
-        public int EstimatedDurationInDays { get; }
+        [JsonInclude]
+        public DateOnly StartDate { get; private set; }
+
+        [JsonInclude]
+        public int EstimatedDurationInDays { get; private set; }
 
         internal CyclePeriod(DateOnly startDate, int estimatedDurationInDays)
         {
@@ -14,6 +18,12 @@ namespace BudgetControl.Domain.ValueObjects
 
             StartDate = startDate;
             EstimatedDurationInDays = estimatedDurationInDays;
+        }
+
+        [JsonConstructor]
+        private CyclePeriod()
+        {
+            // Snapshot / EF rehydration only
         }
 
         public DateOnly EstimatedEndDate =>

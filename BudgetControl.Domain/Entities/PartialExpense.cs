@@ -1,13 +1,19 @@
 ﻿using BudgetControl.Domain.Categories;
 using BudgetControl.Domain.Common;
 using BudgetControl.Domain.ValueObjects;
+using System.Text.Json.Serialization;
 
 namespace BudgetControl.Domain.Entities
 {
     public sealed class PartialExpense : Entity
     {
+        [JsonInclude]
         public Money Amount { get; }
+
+        [JsonInclude]
         public string Description { get; }
+
+        [JsonInclude]
         public DateTime CreatedAt { get; }
         
         private PartialExpense(
@@ -28,6 +34,7 @@ namespace BudgetControl.Domain.Entities
             return new PartialExpense(amount, description);
         }
 
+        [JsonConstructor]
         private PartialExpense()
         : base(null)
         {

@@ -1,13 +1,18 @@
 ﻿using BudgetControl.Domain.Common;
 using BudgetControl.Domain.ValueObjects;
+using System.Text.Json.Serialization;
 
 namespace BudgetControl.Domain.Entities
 {
     public sealed class DayAllocation : Entity
     {
+        [JsonInclude]
         public DateOnly Date { get; }
+
+        [JsonInclude]
         public bool IsClosed { get; private set; }
 
+        [JsonInclude]
         private readonly List<PartialExpense> _expenses = new();
         public IReadOnlyCollection<PartialExpense> Expenses => _expenses;
 
@@ -33,6 +38,7 @@ namespace BudgetControl.Domain.Entities
         public Money TotalSpent =>
             _expenses.Aggregate(Money.Zero, (acc, e) => acc.Add(e.Amount));
 
+        [JsonConstructor]
         private DayAllocation()
         : base(null)
         {
