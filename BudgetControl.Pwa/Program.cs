@@ -1,5 +1,6 @@
 using BudgetControl.Domain.Aggregates;
 using BudgetControl.Pwa;
+using BudgetControl.Pwa.Infrastructure.Application;
 using BudgetControl.Pwa.Infrastructure.EventStore;
 using BudgetControl.Pwa.Infrastructure.Snapshot;
 using BudgetControl.Pwa.Infrastructure.Sync;
@@ -20,5 +21,10 @@ builder.Services.AddScoped<BudgetControl.Pwa.Infrastructure.Application.Register
 builder.Services.AddScoped<IAggregateSnapshotStore<BudgetCycle>, IndexedDbAggregateSnapshotStore<BudgetCycle>>();
 builder.Services.AddScoped<BudgetControl.Pwa.Infrastructure.Application.CreateBudgetCycleUseCase>();
 
+builder.Services.AddScoped<IBudgetControlApp, BudgetControlApp>();
+
+builder.Services.AddScoped<CreateBudgetCycleUseCase>();
+builder.Services.AddScoped<RegisterExpenseUseCase>();
+builder.Services.AddScoped<CloseDayUseCase>();
 
 await builder.Build().RunAsync();

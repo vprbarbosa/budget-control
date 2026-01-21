@@ -1,6 +1,6 @@
 @page "/test-expense"
-@inject BudgetControl.Pwa.Infrastructure.Application.CreateBudgetCycleUseCase CreateCycle
-@inject BudgetControl.Pwa.Infrastructure.Application.RegisterExpenseUseCase RegisterExpense
+@using BudgetControl.Pwa.Infrastructure.Application
+@inject IBudgetControlApp App
 
 <h3>Test Register Expense</h3>
 
@@ -14,7 +14,7 @@
 
     private async Task Create()
     {
-        _cycleId = await CreateCycle.ExecuteAsync(
+        _cycleId = await App.CreateCycleAsync(
             "Fonte Teste",
             DateOnly.FromDateTime(DateTime.Today),
             30,
@@ -23,7 +23,7 @@
 
     private async Task AddExpense()
     {
-        await RegisterExpense.ExecuteAsync(
+        await App.RegisterExpenseAsync(
             _cycleId!.Value,
             50m,
             "Teste");
