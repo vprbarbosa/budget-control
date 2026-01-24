@@ -97,14 +97,7 @@ else
                                     disabled="@day.IsClosed"
                                     @onclick="() => OpenAddExpense(day.Date)">
                                 ➕
-                            </button>
-
-                            <button class="btn-action danger"
-                                    title="Fechar dia"
-                                    disabled="@day.IsClosed"
-                                    @onclick="() => OpenCloseDayConfirm(day.Date)">
-                                ✔
-                            </button>
+                            </button>                            
                         </td>
                         <td>@(day.IsClosed ? "✔" : "")</td>
                     </tr>
@@ -187,32 +180,6 @@ else
             </div>
         }
 
-        @if (_showCloseDayConfirm)
-        {
-            <div class="budget-modal-backdrop">
-                <div class="budget-modal">
-
-                    <h3>Confirmação</h3>
-
-                    <p>
-                        Confirma a finalização de despesas para este dia?
-                    </p>
-
-                    <div class="modal-actions">
-                        <button class="btn btn-secondary"
-                                @onclick="() => _showCloseDayConfirm = false">
-                            Cancelar
-                        </button>
-
-                        <button class="btn btn-primary"
-                                @onclick="ConfirmCloseDay">
-                            Confirmar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        }
-
         @if (_showAdjustCycleModal)
         {
             <div class="budget-modal-backdrop">
@@ -261,7 +228,6 @@ else
 
     private bool _showViewExpensesModal;
     private bool _showAddExpenseModal;
-    private bool _showCloseDayConfirm;
 
     private IReadOnlyCollection<DayExpenseDto> _expenses = Array.Empty<DayExpenseDto>();
 
@@ -299,13 +265,6 @@ else
         _showAddExpenseModal = true;
     }
 
-    private void OpenCloseDayConfirm(DateOnly date)
-    {
-        _selectedDate = date;
-        _showCloseDayConfirm = true;
-    }
-
-
     private async Task AddExpense()
     {
         if (_newExpenseAmount <= 0)
@@ -326,17 +285,6 @@ else
         _newExpenseDescription = "";
 
         await OnToastRequested.InvokeAsync("Despesa registrada com sucesso");
-    }
-
-    private async Task ConfirmCloseDay()
-    {
-        await Api.CloseCurrentDay(CycleId);
-
-        await RefreshCycle();
-
-        _showCloseDayConfirm = false;
-
-        await OnToastRequested.InvokeAsync("Dia finalizado com sucesso");
     }
 
     private async Task RefreshCycle()
