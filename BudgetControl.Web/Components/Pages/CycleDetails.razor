@@ -1,7 +1,7 @@
 ﻿@using System.Globalization
 @inject BudgetControl.Web.Services.BudgetApiClient Api
 
-@if (_summary is null)
+@if (_cycle is null || _days.Count == 0)
 {
     <p>Carregando...</p>
 }
@@ -14,10 +14,13 @@ else
             <strong>@_cycle!.TotalCapacity.ToString("C2", Br)</strong>
         </div>
 
-        <div class="summary-card">
-            <span>Meta diária</span>
-            <strong>@_summary!.DailyCapacity.ToString("C2", Br)</strong>
-        </div>
+        @if (_summary is not null)
+        {
+            <div class="summary-card">
+                <span>Meta diária</span>
+                <strong>@_summary.DailyCapacity.ToString("C2", Br)</strong>
+            </div>
+        }
 
         <div class="summary-card">
             <span>Total restante</span>
@@ -34,10 +37,11 @@ else
 
         <div class="summary-card">
             <span>Dias restantes</span>
-            <strong>@_summary!.RemainingDays</strong>
+            <strong>@_cycle!.RemainingDays</strong>
         </div>
 
     </div>
+
 
 
 
@@ -244,6 +248,7 @@ else
     private bool _showAdjustCycleModal;
     private DateOnly _newEndDate;
     private decimal? _newTotalCapacity;
+    private bool _hasDailySummary;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -290,8 +295,10 @@ else
     private async Task RefreshCycle()
     {
         _cycle = await Api.GetCycleDetails(CycleId);
-        _summary = await Api.GetDailySummary(CycleId);
         _days = await Api.GetDays(CycleId);
+
+        // summary agora é opcional
+        _summary = await Api.TryGetDailySummary(CycleId);
     }
 
 

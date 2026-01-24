@@ -1,4 +1,5 @@
-﻿using BudgetControl.Application.DTOs;
+﻿using BudgetControl.Application.Abstractions.Clock;
+using BudgetControl.Application.DTOs;
 using BudgetControl.Application.Infrastructure.InMemory;
 using BudgetControl.Application.UseCases.CreateBudgetCycle;
 using BudgetControl.Application.UseCases.GetDailyBudgetSummary;
@@ -9,6 +10,7 @@ using BudgetControl.Domain.Entities;
 var cycleRepository = new InMemoryBudgetCycleRepository();
 var fundingSourceRepository = new InMemoryFundingSourceRepository();
 var categoryRepository = new InMemorySpendingCategoryRepository();
+var clock = new SystemClock();
 
 // ===== Seed mínimo =====
 var fundingSource = FundingSource.Create("Vale Refeição");
@@ -27,7 +29,7 @@ var registerExpense = new RegisterPartialExpenseUseCase(
     );
 
 var getDailySummary = new GetDailyBudgetSummaryUseCase(
-    cycleRepository);
+    cycleRepository, clock);
 
 // ===== Estado do console =====
 Guid? currentCycleId = null;
@@ -128,4 +130,10 @@ static void EnsureCycle(Guid? cycleId)
 {
     if (cycleId is null)
         throw new InvalidOperationException("Nenhum ciclo ativo.");
+}
+
+public sealed class SystemClock : IClock
+{
+    public DateOnly Today()
+        => DateOnly.FromDateTime(DateTime.Today);
 }

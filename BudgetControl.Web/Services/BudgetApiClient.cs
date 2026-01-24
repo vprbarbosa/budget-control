@@ -32,11 +32,16 @@ namespace BudgetControl.Web.Services
             return created!.Id;
         }
 
-        public async Task<DailyBudgetSummaryDto> GetDailySummary(Guid cycleId)
+        public async Task<DailyBudgetSummaryDto?> TryGetDailySummary(Guid cycleId)
         {
-            return await _http.GetFromJsonAsync<DailyBudgetSummaryDto>(
-                $"api/budget-cycles/{cycleId}/daily-summary")
-                ?? throw new InvalidOperationException("Summary not found.");
+            // usa GET normal e interpreta o status
+            var response = await _http.GetAsync($"/api/budget-cycles/{cycleId}/daily-summary");
+
+            if (response.IsSuccessStatusCode)
+                return await response.Content.ReadFromJsonAsync<DailyBudgetSummaryDto>();
+
+            // daily summary é opcional: 404/400 etc -> não tem summary
+            return null;
         }
 
         public async Task<IReadOnlyCollection<BudgetCycleDayDto>> GetDays(Guid cycleId)
