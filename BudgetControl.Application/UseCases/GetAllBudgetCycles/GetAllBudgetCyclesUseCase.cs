@@ -25,7 +25,8 @@ namespace BudgetControl.Application.UseCases.GetAllBudgetCycles
                 .Select(c => new BudgetCycleListItemDto
                 {
                     Id = c.Id,
-                    FundingSourceName = c.Source.Name
+                    FundingSourceName = c.Source.Name,
+                    Title = $"{c.Source.Name} ({c.Period.EstimatedEndDate:MM/yyyy})"
                 })
                 .ToList();
         }
