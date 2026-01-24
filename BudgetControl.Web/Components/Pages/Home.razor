@@ -39,7 +39,7 @@
     }
     else
     {
-        <p>Nenhum acompanhamento cadastrado.</p>
+        <p>Nenhum ciclo cadastrado.</p>
     }
 </div>
 
@@ -48,7 +48,7 @@
     <div class="budget-modal-backdrop">
         <div class="budget-modal">
 
-            <h3>Novo acompanhamento</h3>
+            <h3>Novo ciclo</h3>
 
             <div class="form-group">
                 <label>Data inicial</label>
@@ -293,7 +293,7 @@
         CloseNewCycleModal();
         await LoadCycles();
 
-        ShowToast("Acompanhamento criado com sucesso");
+        ShowToast("Ciclo criado com sucesso");
     }
 
     private void OnStartDateChanged(ChangeEventArgs e)

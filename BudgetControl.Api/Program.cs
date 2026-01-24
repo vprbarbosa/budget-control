@@ -1,3 +1,5 @@
+using BudgetControl.Api.Infrastructure;
+using BudgetControl.Application.Abstractions.Clock;
 using BudgetControl.Application.Abstractions.Persistence;
 using BudgetControl.Application.UseCases.AdjustBudgetCycleCapacity;
 using BudgetControl.Application.UseCases.AdjustBudgetCyclePeriod;
@@ -39,6 +41,7 @@ builder.Services.AddScoped<IFundingSourceRepository, EfFundingSourceRepository>(
 builder.Services.AddScoped<CreateFundingSourceUseCase>();
 builder.Services.AddScoped<CreateBudgetCycleUseCase>();
 builder.Services.AddScoped<RegisterPartialExpenseUseCase>();
+builder.Services.AddScoped<IClock, SystemClock>();
 builder.Services.AddScoped<GetDailyBudgetSummaryUseCase>();
 builder.Services.AddScoped<GetBudgetCycleDetailsUseCase>();
 builder.Services.AddScoped<GetBudgetCycleDaysUseCase>();
