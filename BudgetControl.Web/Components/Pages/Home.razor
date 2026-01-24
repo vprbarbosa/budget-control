@@ -9,7 +9,7 @@
     <div style="display:flex; gap:12px; margin-bottom:16px;">
         <button class="btn btn-primary"
                 @onclick="OpenNewCycleModal">
-            + Novo acompanhamento
+            + Novo ciclo
         </button>
 
         <button class="btn btn-primary"
@@ -31,7 +31,7 @@
                 <details class="cycle-item"
                          @ontoggle="() => Toggle(cycle.Id)">
                     <summary class="cycle-summary">
-                        @cycle.FundingSourceName
+                        @cycle.Title
                     </summary>
 
                     @if (_expandedCycleId == cycle.Id)
