@@ -6,7 +6,7 @@ namespace BudgetControl.Domain.Entities
     public sealed class DayAllocation : Entity
     {
         public DateOnly Date { get; }
-        public bool IsClosed { get; private set; }
+        public bool IsClosed => Date < DateOnly.FromDateTime(DateTime.Today);
 
         private readonly List<PartialExpense> _expenses = new();
         public IReadOnlyCollection<PartialExpense> Expenses => _expenses;
@@ -19,15 +19,7 @@ namespace BudgetControl.Domain.Entities
 
         internal void AddExpense(PartialExpense expense)
         {
-            if (IsClosed)
-                throw new InvalidOperationException("Cannot add expense to a closed day.");
-
             _expenses.Add(expense);
-        }
-
-        internal void Close()
-        {
-            IsClosed = true;
         }
 
         public Money TotalSpent =>

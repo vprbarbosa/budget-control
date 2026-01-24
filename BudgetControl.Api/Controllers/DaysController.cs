@@ -1,5 +1,4 @@
 ﻿using BudgetControl.Application.DTOs;
-using BudgetControl.Application.UseCases.CloseDay;
 using BudgetControl.Application.UseCases.GetDayExpenses;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -12,25 +11,9 @@ namespace BudgetControl.Api.Controllers
     [Route("api/budget-cycles")]
     public sealed class DaysController : ControllerBase
     {
-        private readonly CloseDayUseCase _useCase;
-
-        public DaysController(CloseDayUseCase useCase)
+        public DaysController()
         {
-            _useCase = useCase;
-        }
-
-        [HttpPost("{id:guid}/close-day")]
-        public async Task<IActionResult> Close(Guid id)
-        {
-            try
-            {
-                await _useCase.ExecuteAsync(id);
-                return NoContent();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            
         }
 
         [HttpGet("{id}/days/{date}/expenses")]

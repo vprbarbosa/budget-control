@@ -1,6 +1,5 @@
 ﻿using BudgetControl.Application.DTOs;
 using BudgetControl.Application.Infrastructure.InMemory;
-using BudgetControl.Application.UseCases.CloseDay;
 using BudgetControl.Application.UseCases.CreateBudgetCycle;
 using BudgetControl.Application.UseCases.GetDailyBudgetSummary;
 using BudgetControl.Application.UseCases.RegisterPartialExpense;
@@ -28,9 +27,6 @@ var registerExpense = new RegisterPartialExpenseUseCase(
     );
 
 var getDailySummary = new GetDailyBudgetSummaryUseCase(
-    cycleRepository);
-
-var closeDay = new CloseDayUseCase(
     cycleRepository);
 
 // ===== Estado do console =====
@@ -109,8 +105,6 @@ while (true)
 
             case "4":
                 EnsureCycle(currentCycleId);
-
-                await closeDay.ExecuteAsync(currentCycleId!.Value);
 
                 Console.WriteLine("Dia fechado. Próximo dia agora está ativo.");
                 break;

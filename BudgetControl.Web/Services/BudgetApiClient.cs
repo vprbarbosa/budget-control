@@ -66,19 +66,6 @@ namespace BudgetControl.Web.Services
             }
         }
 
-        public async Task CloseCurrentDay(Guid cycleId)
-        {
-            var response = await _http.PostAsync(
-                $"api/budget-cycles/{cycleId}/close-day",
-                null);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                throw new InvalidOperationException(error);
-            }
-        }
-
         public async Task<IReadOnlyCollection<FundingSourceVm>> GetAllFundingSources()
         {
             return await _http.GetFromJsonAsync<IReadOnlyCollection<FundingSourceVm>>(
