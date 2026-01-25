@@ -27,8 +27,6 @@ namespace BudgetControl.Pwa.Infrastructure.Application
             var cycle = await _snapshotStore.LoadAsync(cycleId, ct)
                 ?? throw new InvalidOperationException("Cycle not found");
 
-            cycle.CloseCurrentDay();
-
             await _snapshotStore.SaveAsync(cycleId, cycle, ct);
 
             Console.WriteLine("[CloseDay] Dia fechado com sucesso");

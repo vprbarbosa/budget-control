@@ -1,5 +1,4 @@
 ﻿using BudgetControl.Application.DTOs;
-using BudgetControl.Application.UseCases.CloseDay;
 using BudgetControl.Application.UseCases.GetDayExpenses;
 using BudgetControl.Contracts.Sync;
 using BudgetControl.Infrastructure.EF.Persistence;
