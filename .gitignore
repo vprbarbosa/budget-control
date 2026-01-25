@@ -483,5 +483,11 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
-# Local database files
-*.dev.db
+# Local database files - SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# Infra local / scripts operacionais (nao versionar)
+infra/*.bat
+infra/backup-database-prd/

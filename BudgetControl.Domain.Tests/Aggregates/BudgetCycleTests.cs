@@ -21,26 +21,6 @@ namespace BudgetControl.Domain.Tests.Aggregates
         }
 
         [Fact]
-        public void DailyCapacity_ShouldIncrease_WhenSomeDaysAreClosed()
-        {
-            // Arrange
-            var cycle = TestData.Cycle(
-                start: new DateOnly(2025, 1, 1),
-                days: 30,
-                capacity: 3000m);
-
-            // Fechar 10 dias sem gastar => denominador cai de 30 para 20
-            for (int i = 0; i < 10; i++)
-                cycle.CloseDay(new DateOnly(2025, 1, 1).AddDays(i));
-
-            // Act
-            var daily = cycle.DailyCapacity;
-
-            // Assert
-            Assert.Equal(150m, daily.Amount);
-        }
-
-        [Fact]
         public void DailyCapacity_ShouldDecrease_WhenExpensesAreRegistered()
         {
             // Arrange
@@ -82,62 +62,6 @@ namespace BudgetControl.Domain.Tests.Aggregates
 
             // Interpretação (do domínio): 150 gasto num dia implicaria "segurar" alguns dias.
             // Aqui o teste prova a consequência matemática correta.
-        }
-
-        [Fact]
-        public void ClosingDay_ShouldReduceDenominator_AndRecalculateDailyCapacity()
-        {
-            // Arrange
-            // 10 dias, 500 => 50/dia
-            var cycle = TestData.Cycle(
-                start: new DateOnly(2025, 1, 1),
-                days: 10,
-                capacity: 500m);
-
-            // Fecha 2 dias (sem gastar) => 8 dias restantes => 62.5/dia
-            cycle.CloseDay(new DateOnly(2025, 1, 1));
-            cycle.CloseDay(new DateOnly(2025, 1, 2));
-
-            // Act
-            var daily = cycle.DailyCapacity;
-
-            // Assert
-            Assert.Equal(62.5m, daily.Amount);
-        }
-
-        [Fact]
-        public void RegisterExpense_ShouldThrow_WhenNoOpenDayAvailable()
-        {
-            // Arrange
-            var cycle = TestData.Cycle(
-                start: new DateOnly(2025, 1, 1),
-                days: 1,
-                capacity: 500m);
-
-            cycle.CloseDay(new DateOnly(2025, 1, 1));
-
-            // Act + Assert
-            Assert.Throws<InvalidOperationException>(() =>
-                cycle.RegisterExpense(10, "Qualquer"));
-        }
-
-
-        [Fact]
-        public void DailyCapacity_ShouldBeZero_WhenAllDaysAreClosed()
-        {
-            // Arrange
-            var start = new DateOnly(2025, 1, 1);
-            var cycle = TestData.Cycle(start, days: 3, capacity: 300m);
-
-            cycle.CloseDay(start);
-            cycle.CloseDay(start.AddDays(1));
-            cycle.CloseDay(start.AddDays(2));
-
-            // Act
-            var daily = cycle.DailyCapacity;
-
-            // Assert
-            Assert.Equal(0m, daily.Amount);
         }
 
         [Fact]

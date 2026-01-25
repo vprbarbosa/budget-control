@@ -1,7 +1,7 @@
 ﻿@using System.Globalization
 @inject BudgetControl.Web.Services.BudgetApiClient Api
 
-@if (_summary is null)
+@if (_cycle is null || _days.Count == 0)
 {
     <p>Carregando...</p>
 }
@@ -14,10 +14,13 @@ else
             <strong>@_cycle!.TotalCapacity.ToString("C2", Br)</strong>
         </div>
 
-        <div class="summary-card">
-            <span>Meta diária</span>
-            <strong>@_summary!.DailyCapacity.ToString("C2", Br)</strong>
-        </div>
+        @if (_summary is not null)
+        {
+            <div class="summary-card">
+                <span>Meta diária</span>
+                <strong>@_summary.DailyCapacity.ToString("C2", Br)</strong>
+            </div>
+        }
 
         <div class="summary-card">
             <span>Total restante</span>
@@ -34,10 +37,11 @@ else
 
         <div class="summary-card">
             <span>Dias restantes</span>
-            <strong>@_summary!.RemainingDays</strong>
+            <strong>@_cycle!.RemainingDays</strong>
         </div>
 
     </div>
+
 
 
 
@@ -97,14 +101,7 @@ else
                                     disabled="@day.IsClosed"
                                     @onclick="() => OpenAddExpense(day.Date)">
                                 ➕
-                            </button>
-
-                            <button class="btn-action danger"
-                                    title="Fechar dia"
-                                    disabled="@day.IsClosed"
-                                    @onclick="() => OpenCloseDayConfirm(day.Date)">
-                                ✔
-                            </button>
+                            </button>                            
                         </td>
                         <td>@(day.IsClosed ? "✔" : "")</td>
                     </tr>
@@ -187,32 +184,6 @@ else
             </div>
         }
 
-        @if (_showCloseDayConfirm)
-        {
-            <div class="budget-modal-backdrop">
-                <div class="budget-modal">
-
-                    <h3>Confirmação</h3>
-
-                    <p>
-                        Confirma a finalização de despesas para este dia?
-                    </p>
-
-                    <div class="modal-actions">
-                        <button class="btn btn-secondary"
-                                @onclick="() => _showCloseDayConfirm = false">
-                            Cancelar
-                        </button>
-
-                        <button class="btn btn-primary"
-                                @onclick="ConfirmCloseDay">
-                            Confirmar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        }
-
         @if (_showAdjustCycleModal)
         {
             <div class="budget-modal-backdrop">
@@ -261,7 +232,6 @@ else
 
     private bool _showViewExpensesModal;
     private bool _showAddExpenseModal;
-    private bool _showCloseDayConfirm;
 
     private IReadOnlyCollection<DayExpenseDto> _expenses = Array.Empty<DayExpenseDto>();
 
@@ -278,6 +248,7 @@ else
     private bool _showAdjustCycleModal;
     private DateOnly _newEndDate;
     private decimal? _newTotalCapacity;
+    private bool _hasDailySummary;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -298,13 +269,6 @@ else
         _newExpenseDescription = "";
         _showAddExpenseModal = true;
     }
-
-    private void OpenCloseDayConfirm(DateOnly date)
-    {
-        _selectedDate = date;
-        _showCloseDayConfirm = true;
-    }
-
 
     private async Task AddExpense()
     {
@@ -328,22 +292,13 @@ else
         await OnToastRequested.InvokeAsync("Despesa registrada com sucesso");
     }
 
-    private async Task ConfirmCloseDay()
-    {
-        await Api.CloseCurrentDay(CycleId);
-
-        await RefreshCycle();
-
-        _showCloseDayConfirm = false;
-
-        await OnToastRequested.InvokeAsync("Dia finalizado com sucesso");
-    }
-
     private async Task RefreshCycle()
     {
         _cycle = await Api.GetCycleDetails(CycleId);
-        _summary = await Api.GetDailySummary(CycleId);
         _days = await Api.GetDays(CycleId);
+
+        // summary agora é opcional
+        _summary = await Api.TryGetDailySummary(CycleId);
     }
 
 

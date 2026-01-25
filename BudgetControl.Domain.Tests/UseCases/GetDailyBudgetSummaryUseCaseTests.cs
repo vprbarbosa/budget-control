@@ -24,7 +24,7 @@ namespace BudgetControl.Domain.Tests.UseCases
             var cycle = BudgetCycle.Create(source, new DateOnly(2025, 1, 1), 30, 3000m);
             await cycleRepo.SaveAsync(cycle);
 
-            var useCase = new GetDailyBudgetSummaryUseCase(cycleRepo);
+            var useCase = new GetDailyBudgetSummaryUseCase(cycleRepo, clock);
 
             // Act
             var summary = await useCase.ExecuteAsync(cycle.Id);

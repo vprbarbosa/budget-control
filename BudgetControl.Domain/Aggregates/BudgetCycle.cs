@@ -142,25 +142,6 @@ namespace BudgetControl.Domain.Aggregates
             day.AddExpense(expense);
         }
 
-        public void CloseCurrentDay()
-        {
-            var day = CurrentDay
-                ?? throw new InvalidOperationException("No open day to close.");
-
-            day.Close();
-        }
-
-        // Admin / histórico
-        public void CloseDay(DateOnly date)
-        {
-            var day = _days.Single(d => d.Date == date);
-
-            if (day.IsClosed)
-                throw new InvalidOperationException("Day already closed.");
-
-            day.Close();
-        }
-
         public bool IsOverBudget => TotalSpent.IsGreaterThan(TotalCapacity);
 
         public void AdjustTotalCapacity(decimal newCapacity)

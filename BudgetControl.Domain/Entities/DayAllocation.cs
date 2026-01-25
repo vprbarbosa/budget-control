@@ -1,18 +1,13 @@
 ﻿using BudgetControl.Domain.Common;
 using BudgetControl.Domain.ValueObjects;
-using System.Text.Json.Serialization;
 
 namespace BudgetControl.Domain.Entities
 {
     public sealed class DayAllocation : Entity
     {
-        [JsonInclude]
         public DateOnly Date { get; }
+        public bool IsClosed => Date < DateOnly.FromDateTime(DateTime.Today);
 
-        [JsonInclude]
-        public bool IsClosed { get; private set; }
-
-        [JsonInclude]
         private readonly List<PartialExpense> _expenses = new();
         public IReadOnlyCollection<PartialExpense> Expenses => _expenses;
 
@@ -24,21 +19,12 @@ namespace BudgetControl.Domain.Entities
 
         internal void AddExpense(PartialExpense expense)
         {
-            if (IsClosed)
-                throw new InvalidOperationException("Cannot add expense to a closed day.");
-
             _expenses.Add(expense);
-        }
-
-        internal void Close()
-        {
-            IsClosed = true;
         }
 
         public Money TotalSpent =>
             _expenses.Aggregate(Money.Zero, (acc, e) => acc.Add(e.Amount));
 
-        [JsonConstructor]
         private DayAllocation()
         : base(null)
         {

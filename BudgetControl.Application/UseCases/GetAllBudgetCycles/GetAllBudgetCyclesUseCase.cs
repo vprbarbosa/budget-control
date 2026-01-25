@@ -19,13 +19,19 @@ namespace BudgetControl.Application.UseCases.GetAllBudgetCycles
 
         public async Task<IReadOnlyCollection<BudgetCycleListItemDto>> ExecuteAsync()
         {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
             var cycles = await _repository.GetAllAsync();
 
             return cycles
+                .Where(c =>
+                    c.Period.StartDate <= today &&
+                    (c.EndDate == null || c.EndDate.Value >= today))
                 .Select(c => new BudgetCycleListItemDto
                 {
                     Id = c.Id,
-                    FundingSourceName = c.Source.Name
+                    FundingSourceName = c.Source.Name,
+                    Title = $"{c.Source.Name} ({c.Period.StartDate:MM/yyyy})"
                 })
                 .ToList();
         }

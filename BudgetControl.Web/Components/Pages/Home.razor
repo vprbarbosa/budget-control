@@ -9,18 +9,13 @@
     <div style="display:flex; gap:12px; margin-bottom:16px;">
         <button class="btn btn-primary"
                 @onclick="OpenNewCycleModal">
-            + Novo acompanhamento
+            + Novo ciclo
         </button>
 
         <button class="btn btn-primary"
                 @onclick="OpenGlobalExpenseModal">
             + Nova despesa
-        </button>
-
-        <button class="btn btn-primary"
-                @onclick="OpenCloseDayBatchModal">
-            Finalizar despesas do dia
-        </button>
+        </button>        
     </div>
 
     @if (_cycles.Any())
@@ -31,7 +26,7 @@
                 <details class="cycle-item"
                          @ontoggle="() => Toggle(cycle.Id)">
                     <summary class="cycle-summary">
-                        @cycle.FundingSourceName
+                        @cycle.Title
                     </summary>
 
                     @if (_expandedCycleId == cycle.Id)
@@ -44,7 +39,7 @@
     }
     else
     {
-        <p>Nenhum acompanhamento cadastrado.</p>
+        <p>Nenhum ciclo cadastrado.</p>
     }
 </div>
 
@@ -53,7 +48,7 @@
     <div class="budget-modal-backdrop">
         <div class="budget-modal">
 
-            <h3>Novo acompanhamento</h3>
+            <h3>Novo ciclo</h3>
 
             <div class="form-group">
                 <label>Data inicial</label>
@@ -173,68 +168,6 @@
     </div>
 }
 
-@if (_showCloseDayBatchModal)
-{
-    <div class="budget-modal-backdrop">
-        <div class="budget-modal">
-
-            <h3>Finalizar despesas do dia</h3>
-
-            <p>Selecione os acompanhamentos:</p>
-
-            <div class="cycle-select-list">
-                @foreach (var c in _selectableCycles)
-                {
-                    <label class="cycle-select-item">
-                        <input type="checkbox" @bind="c.Selected" />
-                        <span>@c.Name</span>
-                    </label>
-                }
-            </div>
-
-            <div class="modal-actions">
-                <button class="btn btn-secondary"
-                        @onclick="CloseCloseDayBatchModal">
-                    Cancelar
-                </button>
-
-                <button class="btn btn-primary"
-                        disabled="@(!_selectableCycles.Any(x => x.Selected))"
-                        @onclick="OpenCloseDayBatchConfirm">
-                    Continuar
-                </button>
-            </div>
-        </div>
-    </div>
-}
-
-@if (_showCloseDayBatchConfirm)
-{
-    <div class="budget-modal-backdrop">
-        <div class="budget-modal">
-
-            <h3>Confirmação</h3>
-
-            <p>
-                Confirma a finalização das despesas do dia,
-                para os itens selecionados?
-            </p>
-
-            <div class="modal-actions">
-                <button class="btn btn-secondary"
-                        @onclick="CancelCloseDayBatchConfirm">
-                    Cancelar
-                </button>
-
-                <button class="btn btn-primary"
-                        @onclick="ConfirmCloseDayBatch">
-                    Confirmar
-                </button>
-            </div>
-        </div>
-    </div>
-}
-
 @if (_showToast)
 {
     <div class="toast">
@@ -269,9 +202,6 @@
 
     private List<FundingSourceVm> _fundingSources = new();
     private string _newFundingDescription = "";
-
-    private bool _showCloseDayBatchModal;
-    private bool _showCloseDayBatchConfirm;
 
     private List<SelectableCycle> _selectableCycles = new();
 
@@ -363,7 +293,7 @@
         CloseNewCycleModal();
         await LoadCycles();
 
-        ShowToast("Acompanhamento criado com sucesso");
+        ShowToast("Ciclo criado com sucesso");
     }
 
     private void OnStartDateChanged(ChangeEventArgs e)
@@ -424,56 +354,6 @@
     private void CloseGlobalExpenseModal()
     {
         _showGlobalExpenseModal = false;
-    }
-
-    private void OpenCloseDayBatchModal()
-    {
-        _selectableCycles = _cycles
-            .Select(c => new SelectableCycle
-            {
-                CycleId = c.Id,
-                Name = c.FundingSourceName,
-                Selected = true
-            })
-            .ToList();
-
-        _showCloseDayBatchModal = true;
-    }
-
-    private void OpenCloseDayBatchConfirm()
-    {
-        _showCloseDayBatchModal = false;
-        _showCloseDayBatchConfirm = true;
-    }
-
-    private void CancelCloseDayBatchConfirm()
-    {
-        _showCloseDayBatchConfirm = false;
-        _showCloseDayBatchModal = true;
-    }
-
-    private void CloseCloseDayBatchModal()
-    {
-        _showCloseDayBatchModal = false;
-    }
-
-    private async Task ConfirmCloseDayBatch()
-    {
-        var selectedCycleIds = _selectableCycles
-            .Where(c => c.Selected)
-            .Select(c => c.CycleId)
-            .ToList();
-
-        foreach (var cycleId in selectedCycleIds)
-        {
-            await Api.CloseCurrentDay(cycleId);
-        }
-
-        _showCloseDayBatchConfirm = false;
-
-        await LoadCycles();
-
-        ShowToast("Despesas do dia finalizadas");
     }
 
     private void ShowToast(string message)
