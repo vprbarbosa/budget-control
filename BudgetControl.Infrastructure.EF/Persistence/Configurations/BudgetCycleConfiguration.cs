@@ -61,9 +61,7 @@ namespace BudgetControl.Infrastructure.EF.Persistence.Configurations
                     .HasColumnName("date")
                     .IsRequired();
 
-                dayBuilder.Property(d => d.IsClosed)
-                    .HasColumnName("is_closed")
-                    .IsRequired();
+                dayBuilder.Ignore(d => d.IsClosed);
 
                 dayBuilder.OwnsMany(d => d.Expenses, exp =>
                 {
