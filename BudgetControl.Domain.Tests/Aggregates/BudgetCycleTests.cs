@@ -14,7 +14,9 @@ namespace BudgetControl.Domain.Tests.Aggregates
                 capacity: 3000m);
 
             // Act
-            var daily = cycle.DailyCapacity;
+            var today = new DateOnly(2025, 1, 1);
+            var daily = cycle.DailyCapacity(today);
+
 
             // Assert
             Assert.Equal(100m, daily.Amount);
@@ -23,6 +25,8 @@ namespace BudgetControl.Domain.Tests.Aggregates
         [Fact]
         public void DailyCapacity_ShouldDecrease_WhenExpensesAreRegistered()
         {
+            var today = new DateOnly(2025, 1, 1);
+
             // Arrange
             var cycle = TestData.Cycle(
                 start: new DateOnly(2025, 1, 1),
@@ -31,10 +35,10 @@ namespace BudgetControl.Domain.Tests.Aggregates
 
             // meta inicial 100/dia
             // gastar 300 => restante 2700 => 2700/30 = 90
-            cycle.RegisterExpense(300, "Combustível");
+            cycle.RegisterExpense(300, "Combustível", today);
 
             // Act
-            var daily = cycle.DailyCapacity;
+            var daily = cycle.DailyCapacity(today);
 
             // Assert
             Assert.Equal(90m, daily.Amount);
@@ -43,6 +47,8 @@ namespace BudgetControl.Domain.Tests.Aggregates
         [Fact]
         public void BigExpense_ShouldProjectNeedToHoldSpending_ForFutureDays()
         {
+            var today = new DateOnly(2025, 1, 1);
+
             // Arrange
             // Exemplo: 10 dias, capacidade 500 => meta inicial 50
             var cycle = TestData.Cycle(
@@ -51,11 +57,11 @@ namespace BudgetControl.Domain.Tests.Aggregates
                 capacity: 500m);
 
             // gasto grande: 150 (3x a meta diária inicial)
-            cycle.RegisterExpense(150, "Abastecer carro");
+            cycle.RegisterExpense(150, "Abastecer carro", today);
 
             // Act
             // restante 350, dias restantes 10 (nenhum fechado) => 35/dia
-            var daily = cycle.DailyCapacity;
+            var daily = cycle.DailyCapacity(today);
 
             // Assert
             Assert.Equal(35m, daily.Amount);
@@ -67,6 +73,8 @@ namespace BudgetControl.Domain.Tests.Aggregates
         [Fact]
         public void AdjustTotalCapacity_ShouldRecalculateDailyCapacity()
         {
+            var today = new DateOnly(2025, 1, 1);
+
             // Arrange
             // 10 dias, 500 => 50/dia
             var cycle = TestData.Cycle(
@@ -76,7 +84,7 @@ namespace BudgetControl.Domain.Tests.Aggregates
 
             // Act
             cycle.AdjustTotalCapacity(600); // => 60/dia
-            var daily = cycle.DailyCapacity;
+            var daily = cycle.DailyCapacity(today);
 
             // Assert
             Assert.Equal(60m, daily.Amount);

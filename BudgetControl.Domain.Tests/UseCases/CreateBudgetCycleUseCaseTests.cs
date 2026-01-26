@@ -11,6 +11,8 @@ namespace BudgetControl.Domain.Tests.UseCases
         public async Task Should_create_budget_cycle_with_correct_daily_capacity()
         {
             // Arrange
+            var today = new DateOnly(2025, 1, 1);
+
             var sourceRepo = new InMemoryFundingSourceRepository();
             var cycleRepo = new InMemoryBudgetCycleRepository();
 
@@ -22,7 +24,7 @@ namespace BudgetControl.Domain.Tests.UseCases
             var input = new CreateBudgetCycleInput
             {
                 FundingSourceId = source.Id,
-                StartDate = new DateOnly(2025, 1, 1),
+                StartDate = today,
                 EstimatedDurationInDays = 30,
                 TotalCapacity = 3000m
             };
@@ -35,8 +37,11 @@ namespace BudgetControl.Domain.Tests.UseCases
 
             Assert.Equal(source.Id, cycle.Source.Id);
             Assert.Equal(30, cycle.Days.Count);
-            Assert.Equal(100m, cycle.DailyCapacity.Amount);
             Assert.Equal(3000m, cycle.TotalCapacity.Amount);
+
+            // 🔑 Daily capacity is contextual
+            var daily = cycle.DailyCapacity(today);
+            Assert.Equal(100m, daily.Amount);
         }
     }
 }

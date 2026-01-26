@@ -6,8 +6,7 @@ namespace BudgetControl.Domain.Entities
     public sealed class DayAllocation : Entity
     {
         public DateOnly Date { get; }
-        public bool IsClosed => Date < DateOnly.FromDateTime(DateTime.Today);
-
+        
         private readonly List<PartialExpense> _expenses = new();
         public IReadOnlyCollection<PartialExpense> Expenses => _expenses;
 
@@ -22,8 +21,9 @@ namespace BudgetControl.Domain.Entities
             _expenses.Add(expense);
         }
 
-        public Money TotalSpent =>
-            _expenses.Aggregate(Money.Zero, (acc, e) => acc.Add(e.Amount));
+        public Money TotalSpent => _expenses.Aggregate(Money.Zero, (acc, e) => acc.Add(e.Amount));
+
+        public bool IsClosed(DateOnly today) => Date < today;
 
         private DayAllocation()
         : base(null)

@@ -61,8 +61,6 @@ namespace BudgetControl.Infrastructure.EF.Persistence.Configurations
                     .HasColumnName("date")
                     .IsRequired();
 
-                dayBuilder.Ignore(d => d.IsClosed);
-
                 dayBuilder.OwnsMany(d => d.Expenses, exp =>
                 {
                     exp.ToTable("partial_expenses");

@@ -1,4 +1,5 @@
-﻿using BudgetControl.Application.Abstractions.Persistence;
+﻿using BudgetControl.Application.Abstractions.Clock;
+using BudgetControl.Application.Abstractions.Persistence;
 using BudgetControl.Application.DTOs;
 using System;
 using System.Collections.Generic;
@@ -9,11 +10,12 @@ namespace BudgetControl.Application.UseCases.GetBudgetCycleDetails
     public sealed class GetBudgetCycleDetailsUseCase
     {
         private readonly IBudgetCycleRepository _repository;
+        private readonly IClock _clock;
 
-        public GetBudgetCycleDetailsUseCase(
-            IBudgetCycleRepository repository)
+        public GetBudgetCycleDetailsUseCase(IBudgetCycleRepository repository, IClock clock)
         {
             _repository = repository;
+            _clock = clock;
         }
 
         public async Task<BudgetCycleDetailsDto> ExecuteAsync(Guid cycleId)
@@ -22,6 +24,8 @@ namespace BudgetControl.Application.UseCases.GetBudgetCycleDetails
                 ?? throw new InvalidOperationException("Budget cycle not found.");
 
             var remaining = cycle.RemainingCapacity.Amount;
+
+            var today = _clock.Today();
 
             return new BudgetCycleDetailsDto
             {
@@ -37,8 +41,8 @@ namespace BudgetControl.Application.UseCases.GetBudgetCycleDetails
                 ExceededAmount = remaining < 0 ? -remaining : 0,
                 IsOverBudget = cycle.IsOverBudget,
 
-                DailyCapacity = cycle.DailyCapacity.Amount,
-                RemainingDays = cycle.RemainingDays
+                DailyCapacity = cycle.DailyCapacity(today).Amount,
+                RemainingDays = cycle.RemainingDays(today)
             };
         }
     }

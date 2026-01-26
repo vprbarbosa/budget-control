@@ -1,4 +1,5 @@
-﻿using BudgetControl.Application.Abstractions.Persistence;
+﻿using BudgetControl.Application.Abstractions.Clock;
+using BudgetControl.Application.Abstractions.Persistence;
 using BudgetControl.Application.DTOs;
 using System;
 using System.Collections.Generic;
@@ -9,17 +10,20 @@ namespace BudgetControl.Application.UseCases.GetBudgetCycleDays
     public sealed class GetBudgetCycleDaysUseCase
     {
         private readonly IBudgetCycleRepository _repository;
+        private readonly IClock _clock;
 
-        public GetBudgetCycleDaysUseCase(
-            IBudgetCycleRepository repository)
+        public GetBudgetCycleDaysUseCase(IBudgetCycleRepository repository, IClock clock)
         {
             _repository = repository;
+            _clock = clock;
         }
 
         public async Task<IReadOnlyCollection<BudgetCycleDayDto>> ExecuteAsync(Guid cycleId)
         {
             var cycle = await _repository.GetByIdAsync(cycleId)
                 ?? throw new InvalidOperationException("Budget cycle not found.");
+
+            var today = _clock.Today();
 
             var activeDays = cycle.Days
                 .Where(d =>
@@ -32,9 +36,10 @@ namespace BudgetControl.Application.UseCases.GetBudgetCycleDays
                 {
                     Date = d.Date,
                     TotalSpent = d.TotalSpent.Amount,
-                    IsClosed = d.IsClosed
+                    IsClosed = d.IsClosed(today)
                 })
                 .ToList();
+
         }
     }
 

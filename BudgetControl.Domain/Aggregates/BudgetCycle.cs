@@ -91,15 +91,24 @@ namespace BudgetControl.Domain.Aggregates
         public Money RemainingCapacity =>
             TotalCapacity.Subtract(TotalSpent);
 
-        public int RemainingDays =>
-            ActiveDays.Count(d => !d.IsClosed);
+        public int RemainingDays(DateOnly today) =>
+            ActiveDays.Count(d => !d.IsClosed(today));
 
-        public Money DailyCapacity =>
-            RemainingDays == 0
-                ? Money.Zero
-                : RemainingCapacity.IsLessThan(Money.Zero)
-                    ? Money.Zero
-                    : new Money(RemainingCapacity.Amount / RemainingDays);
+
+        public Money DailyCapacity(DateOnly today)
+        {
+            var remainingDays = RemainingDays(today);
+
+            if (remainingDays == 0)
+                return Money.Zero;
+
+            if (RemainingCapacity.IsLessThan(Money.Zero))
+                return Money.Zero;
+
+            return Money.FromDecimal(
+                RemainingCapacity.Amount / remainingDays
+            );
+        }
 
         private IEnumerable<DayAllocation> ActiveDays =>
             _days.Where(d =>
@@ -107,28 +116,31 @@ namespace BudgetControl.Domain.Aggregates
                 (EndDate == null || d.Date <= EndDate.Value));
 
 
-        private DayAllocation? CurrentDay =>
+        private DayAllocation? CurrentDay(DateOnly today) =>
             ActiveDays
                 .OrderBy(d => d.Date)
-                .FirstOrDefault(d => !d.IsClosed);
+                .FirstOrDefault(d => !d.IsClosed(today));
 
         // ===== Commands =====
 
         public void RegisterExpense(
             decimal amount,
-            string description = "")
+            string description,
+            DateOnly today)
         {
-            var day = CurrentDay
-                ?? throw new InvalidOperationException("No open day available in this cycle.");
+            var day = ActiveDays
+                .Where(d => d.Date <= today)
+                .OrderBy(d => d.Date)
+                .LastOrDefault(d => !d.IsClosed(today));
 
-            var moneyAmout = new Money(amount);
+            if (day is null)
+                throw new InvalidOperationException("No open day available in this cycle.");
+
+            var moneyAmount = Money.FromDecimal(amount);
 
             var expense = PartialExpense.Create(
-                moneyAmout,
+                moneyAmount,
                 description);
-
-            if (TotalSpent.Add(moneyAmout).IsGreaterThan(TotalCapacity))
-                throw new InvalidOperationException("Insufficient funds.");
 
             day.AddExpense(expense);
         }
@@ -146,14 +158,13 @@ namespace BudgetControl.Domain.Aggregates
             InitializeDays();
         }
 
-        public void DefineEndDate(DateOnly endDate)
+        public void DefineEndDate(DateOnly endDate, DateOnly today)
         {
             if (endDate < Period.StartDate)
                 throw new InvalidOperationException("Data final não pode ser anterior à data inicial.");
 
-            // validação contra dias fechados
             var lastClosedDay = _days
-                .Where(d => d.IsClosed)
+                .Where(d => d.IsClosed(today))
                 .OrderByDescending(d => d.Date)
                 .FirstOrDefault();
 
@@ -162,8 +173,6 @@ namespace BudgetControl.Domain.Aggregates
                     "Data final não pode ser anterior ao último dia já fechado.");
 
             EndDate = endDate;
-
-            // 🔥 AQUI está o ponto que faltava
             EnsureDaysUpTo(endDate);
         }
 
