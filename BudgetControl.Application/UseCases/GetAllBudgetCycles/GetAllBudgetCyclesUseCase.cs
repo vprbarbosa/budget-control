@@ -25,8 +25,14 @@ namespace BudgetControl.Application.UseCases.GetAllBudgetCycles
 
             return cycles
                 .Where(c =>
-                    c.Period.StartDate <= today &&
-                    (c.EndDate == null || c.EndDate.Value >= today))
+                    // ciclos futuros
+                    c.Period.StartDate > today ||
+
+                    // ciclos ativos
+                    (c.Period.StartDate <= today &&
+                     (c.EndDate == null || c.EndDate.Value >= today))
+                )
+                .OrderByDescending(c => c.Period.StartDate)
                 .Select(c => new BudgetCycleListItemDto
                 {
                     Id = c.Id,
@@ -35,5 +41,6 @@ namespace BudgetControl.Application.UseCases.GetAllBudgetCycles
                 })
                 .ToList();
         }
+
     }
 }

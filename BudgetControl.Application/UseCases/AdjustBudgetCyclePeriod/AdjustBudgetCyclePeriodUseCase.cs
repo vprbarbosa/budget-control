@@ -1,4 +1,5 @@
-﻿using BudgetControl.Application.Abstractions.Persistence;
+﻿using BudgetControl.Application.Abstractions.Clock;
+using BudgetControl.Application.Abstractions.Persistence;
 using BudgetControl.Application.DTOs;
 using System;
 using System.Collections.Generic;
@@ -9,10 +10,12 @@ namespace BudgetControl.Application.UseCases.AdjustBudgetCyclePeriod
     public sealed class AdjustBudgetCyclePeriodUseCase
     {
         private readonly IBudgetCycleRepository _repository;
+        private readonly IClock _clock;
 
-        public AdjustBudgetCyclePeriodUseCase(IBudgetCycleRepository repository)
+        public AdjustBudgetCyclePeriodUseCase(IBudgetCycleRepository repository, IClock clock)
         {
             _repository = repository;
+            _clock = clock;
         }
 
         public async Task ExecuteAsync(AdjustBudgetCyclePeriodInput input)
@@ -21,9 +24,11 @@ namespace BudgetControl.Application.UseCases.AdjustBudgetCyclePeriod
             var cycle = await _repository.GetByIdAsync(input.CycleId)
                 ?? throw new InvalidOperationException("Ciclo não encontrado.");
 
+            var today = _clock.Today();
+
             // 2. Descobrir o último dia fechado
             var lastClosedDay = cycle.Days
-                .Where(d => d.IsClosed)
+                .Where(d => d.IsClosed(today))
                 .OrderByDescending(d => d.Date)
                 .FirstOrDefault();
 
@@ -36,7 +41,7 @@ namespace BudgetControl.Application.UseCases.AdjustBudgetCyclePeriod
             }
 
             // 4. Delegar ao domínio
-            cycle.DefineEndDate(input.EndDate);
+            cycle.DefineEndDate(input.EndDate, today);
 
             // 5. Persistir
             await _repository.SaveAsync(cycle);

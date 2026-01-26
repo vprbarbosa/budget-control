@@ -22,6 +22,7 @@ namespace BudgetControl.Application.UseCases.GetDailyBudgetSummary
             var cycle = await _cycleRepository.GetByIdAsync(budgetCycleId)
                 ?? throw new InvalidOperationException("Budget cycle not found.");
 
+            var today = _clock.Today();
             var dailyTarget = CalculateDailyTarget(cycle, _clock.Today());
 
             return new DailyBudgetSummaryDto
@@ -30,7 +31,7 @@ namespace BudgetControl.Application.UseCases.GetDailyBudgetSummary
                 FundingSourceName = cycle.Source.Name,
                 DailyCapacity = dailyTarget.Amount,
                 RemainingCapacity = cycle.RemainingCapacity.Amount,
-                RemainingDays = cycle.RemainingDays
+                RemainingDays = cycle.RemainingDays(today)
             };
         }
 
@@ -42,11 +43,14 @@ namespace BudgetControl.Application.UseCases.GetDailyBudgetSummary
             var baseCapacity =
                 cycle.RemainingCapacity.Add(spentToday);
 
-            if (cycle.RemainingDays == 0)
+            var remainingDays =
+                cycle.RemainingDays(today);
+
+            if (remainingDays == 0)
                 return Money.Zero;
 
             return Money.FromDecimal(
-                baseCapacity.Amount / cycle.RemainingDays
+                baseCapacity.Amount / remainingDays
             );
         }
     }

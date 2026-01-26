@@ -4,9 +4,6 @@ using BudgetControl.Application.UseCases.RegisterPartialExpense;
 using BudgetControl.Domain.Aggregates;
 using BudgetControl.Domain.Categories;
 using BudgetControl.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace BudgetControl.Domain.Tests.UseCases
 {
@@ -16,6 +13,8 @@ namespace BudgetControl.Domain.Tests.UseCases
         public async Task Should_register_partial_expense_and_recalculate_daily_capacity()
         {
             // Arrange
+            var today = new DateOnly(2025, 1, 1);
+
             var cycleRepo = new InMemoryBudgetCycleRepository();
             var categoryRepo = new InMemorySpendingCategoryRepository();
 
@@ -23,14 +22,25 @@ namespace BudgetControl.Domain.Tests.UseCases
             var category = SpendingCategory.Create("Combustível");
             categoryRepo.Add(category);
 
-            var cycle = BudgetCycle.Create(source, new DateOnly(2025, 1, 1), 10, 500m);
+            var cycle = BudgetCycle.Create(
+                source,
+                startDate: today,
+                estimatedDurationInDays: 10,
+                totalCapacity: 500m
+            );
+
             await cycleRepo.SaveAsync(cycle);
 
-            var useCase = new RegisterPartialExpenseUseCase(cycleRepo);
+            var clock = new FakeClock(new DateOnly(2025, 1, 1));
+
+            var useCase = new RegisterPartialExpenseUseCase(
+                cycleRepo,
+                clock
+            );
 
             var input = new RegisterPartialExpenseInput
             {
-                BudgetCycleId = cycle.Id,                
+                BudgetCycleId = cycle.Id,
                 Amount = 150m,
                 Description = "Abastecimento"
             };
@@ -40,8 +50,11 @@ namespace BudgetControl.Domain.Tests.UseCases
 
             // Assert
             var updated = (await cycleRepo.GetByIdAsync(cycle.Id))!;
+
             Assert.Equal(350m, updated.RemainingCapacity.Amount);
-            Assert.Equal(35m, updated.DailyCapacity.Amount); // 350 / 10
+
+            var daily = updated.DailyCapacity(today);
+            Assert.Equal(35m, daily.Amount); // 350 / 10
         }
     }
 }
