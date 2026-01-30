@@ -10,7 +10,7 @@ using BudgetControl.Domain.Entities;
 var cycleRepository = new InMemoryBudgetCycleRepository();
 var fundingSourceRepository = new InMemoryFundingSourceRepository();
 var categoryRepository = new InMemorySpendingCategoryRepository();
-var clock = new SystemClock();
+var clock = new SystemClockConsole();
 
 // ===== Seed mínimo =====
 var fundingSource = FundingSource.Create("Vale Refeição");
@@ -132,7 +132,7 @@ static void EnsureCycle(Guid? cycleId)
         throw new InvalidOperationException("Nenhum ciclo ativo.");
 }
 
-public sealed class SystemClock : IClock
+public sealed class SystemClockConsole : IClock
 {
     public DateOnly Today()
         => DateOnly.FromDateTime(DateTime.Today);
