@@ -81,6 +81,9 @@ namespace BudgetControl.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IReadOnlyCollection<BudgetCycleListItemDto>>> GetAll([FromServices] GetAllBudgetCyclesUseCase useCase)
         {
+            Console.WriteLine($"[SERVER] DateTime.Now      = {DateTime.Now:o}");
+            Console.WriteLine($"[SERVER] DateTime.UtcNow  = {DateTime.UtcNow:o}");
+
             var result = await useCase.ExecuteAsync();
 
             return Ok(result);
