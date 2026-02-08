@@ -98,7 +98,6 @@ else
 
                             <button class="btn-action"
                                     title="Adicionar gasto"
-                                    disabled="@day.IsClosed"
                                     @onclick="() => OpenAddExpense(day.Date)">
                                 ➕
                             </button>                            
@@ -272,6 +271,8 @@ else
 
     private async Task AddExpense()
     {
+        Console.WriteLine($"[UI] Selected date: {_selectedDate}");
+
         if (_newExpenseAmount <= 0)
             return;
 
@@ -279,7 +280,8 @@ else
         {
             BudgetCycleId = CycleId,
             Amount = _newExpenseAmount,
-            Description = _newExpenseDescription
+            Description = _newExpenseDescription,
+            Date = _selectedDate
         });
 
         _expenses = await Api.GetExpenses(CycleId, _selectedDate);

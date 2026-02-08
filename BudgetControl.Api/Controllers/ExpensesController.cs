@@ -2,6 +2,7 @@
 using BudgetControl.Application.DTOs;
 using BudgetControl.Application.UseCases.RegisterPartialExpense;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -30,7 +31,8 @@ namespace BudgetControl.Api.Controllers
                     {
                         BudgetCycleId = request.BudgetCycleId,
                         Amount = request.Amount,
-                        Description = request.Description
+                        Description = request.Description,
+                        Date = request.Date
                     });
 
                 return NoContent();

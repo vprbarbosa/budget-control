@@ -123,18 +123,15 @@ namespace BudgetControl.Domain.Aggregates
 
         // ===== Commands =====
 
-        public void RegisterExpense(
-            decimal amount,
-            string description,
-            DateOnly today)
+        public void RegisterExpense(decimal amount, string description, DateOnly targetDate)
         {
             var day = ActiveDays
-                .Where(d => d.Date <= today)
-                .OrderBy(d => d.Date)
-                .LastOrDefault(d => !d.IsClosed(today));
+                .FirstOrDefault(d => d.Date == targetDate);
 
             if (day is null)
-                throw new InvalidOperationException("No open day available in this cycle.");
+                throw new InvalidOperationException(
+                    $"Day {targetDate} does not belong to this budget cycle."
+                );
 
             var moneyAmount = Money.FromDecimal(amount);
 
@@ -144,6 +141,7 @@ namespace BudgetControl.Domain.Aggregates
 
             day.AddExpense(expense);
         }
+
 
         public bool IsOverBudget => TotalSpent.IsGreaterThan(TotalCapacity);
 
