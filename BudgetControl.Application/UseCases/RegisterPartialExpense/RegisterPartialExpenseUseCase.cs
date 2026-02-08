@@ -1,6 +1,7 @@
 ﻿using BudgetControl.Application.Abstractions.Clock;
 using BudgetControl.Application.Abstractions.Persistence;
 using BudgetControl.Application.DTOs;
+using System.Runtime.InteropServices;
 
 namespace BudgetControl.Application.UseCases.RegisterPartialExpense
 {
@@ -22,12 +23,12 @@ namespace BudgetControl.Application.UseCases.RegisterPartialExpense
             var cycle = await _repository.GetByIdAsync(input.BudgetCycleId)
                 ?? throw new InvalidOperationException("Budget cycle not found.");
 
-            var today = _clock.Today();
+            var referenceDate = input.Date ?? _clock.Today();
 
             cycle.RegisterExpense(
                 amount: input.Amount,
                 description: input.Description,
-                today: today
+                targetDate: referenceDate
             );
 
             await _repository.SaveAsync(cycle);
