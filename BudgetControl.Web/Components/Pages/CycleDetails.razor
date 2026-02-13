@@ -330,7 +330,7 @@ else
         if (decimal.TryParse(
             e.Value?.ToString(),
             NumberStyles.Any,
-            Br,
+            CultureInfo.InvariantCulture,
             out var value
         ))
             _newTotalCapacity = value;
